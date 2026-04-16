@@ -552,7 +552,7 @@
         const utt = new SpeechSynthesisUtterance(sentences[i].trim());
         utt.lang = 'en-US';
         utt.rate = 0.85;
-        utt.pitch = (voice === voiceA) ? 0.9 : 1.1;
+        utt.pitch = (voice === voiceA) ? 0.7 : 1.4;
         if (voice) utt.voice = voice;
         speakUtterance(utt, () => { i++; setTimeout(speakNext, 500); });
       }
@@ -578,16 +578,16 @@
               if (mySession !== speakSessionId) return;
               if (j >= sentencesB.length) return;
               const uttB = new SpeechSynthesisUtterance(sentencesB[j].trim());
-              uttB.lang = 'en-US'; uttB.rate = 0.85; uttB.pitch = 1.1;
+              uttB.lang = 'en-US'; uttB.rate = 0.85; uttB.pitch = 1.4;
               if (bestVoice) uttB.voice = bestVoice;
               speakUtterance(uttB, () => { j++; setTimeout(speakNextB, 500); });
             }
             speakNextB();
-          }, 600);
+          }, 800);
           return;
         }
         const uttA = new SpeechSynthesisUtterance(sentencesA[i].trim());
-        uttA.lang = 'en-US'; uttA.rate = 0.85; uttA.pitch = 0.9;
+        uttA.lang = 'en-US'; uttA.rate = 0.85; uttA.pitch = 0.7;
         if (voiceA) uttA.voice = voiceA;
         speakUtterance(uttA, () => { i++; setTimeout(speakNextA, 500); });
       }
@@ -1247,12 +1247,23 @@
       const msg = document.getElementById('q1-message');
       if (correct) {
         q1SetScore++;
+        const meanings = currentQ1.choicesMeaning || {};
         document.querySelectorAll('#q1-choices .choice-btn').forEach(b => {
           b.disabled = true;
-          if (b.innerText === currentQ1.answer) b.classList.add('correct');
+          const word = b.innerText;
+          if (word === currentQ1.answer) b.classList.add('correct');
+          if (meanings[word]) {
+            const span = document.createElement('span');
+            span.className = 'choice-meaning';
+            span.textContent = meanings[word];
+            b.appendChild(span);
+          }
         });
         msg.style.color = 'var(--success)';
         msg.innerHTML = q1IsRetry ? '🌟 おぼえたね！すごい！' : '🎉 <ruby>正解<rt>せいかい</rt></ruby>！すごい！';
+        const expEl = document.getElementById('q1-explanation');
+        expEl.innerHTML = '💡 ' + (currentQ1.explanation || '');
+        expEl.classList.add('show');
         const fullSentence = (currentQ1.sentence || '').replace('( )', currentQ1.answer);
         speakQ1Sentence(fullSentence);
         document.getElementById('q1-next-btn').style.display = 'inline-block';
@@ -1441,6 +1452,9 @@
           <div class="dialogue-b" style="color:var(--success)">👧 B: ${currentQ2.answer}</div>`;
         msg.style.color = 'var(--success)';
         msg.innerHTML = q2IsRetry ? '🌟 おぼえたね！すごい！' : '🎉 <ruby>正解<rt>せいかい</rt></ruby>！ナイス！';
+        const expEl = document.getElementById('q2-explanation');
+        expEl.innerHTML = '💡 ' + (currentQ2.explanation || '');
+        expEl.classList.add('show');
         speakDialogue(currentQ2.dialogueA || '', currentQ2.answer);
         document.getElementById('q2-next-btn').style.display = 'inline-block';
       } else {
