@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="きょうの音羽">
+<meta name="theme-color" content="#FFF5F7">
+<title>4がつ15にち 音羽ちゃん専用</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sakura: #FFB7C5;
+    --sakura-deep: #EC407A;
+    --sakura-shadow: #F8BBD0;
+    --leaf: #AED581;
+    --leaf-deep: #7CB342;
+    --leaf-shadow: #C5E1A5;
+    --bg: #FFF5F7;
+    --text: #4E342E;
+    --cream: #FFFDE7;
+    --sky: #B3E5FC;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
+    background: var(--bg);
+    background-image:
+      radial-gradient(var(--sakura-shadow) 14%, transparent 15%),
+      radial-gradient(var(--leaf-shadow) 14%, transparent 15%);
+    background-size: 44px 44px;
+    background-position: 0 0, 22px 22px;
+    color: var(--text);
+    margin: 0;
+    padding: 12px 14px 40px;
+    text-align: center;
+    touch-action: manipulation;
+  }
+  ruby { ruby-align: center; }
+  rt { font-size: 11px; color: #8D6E63; }
+
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.96);
+    padding: 22px 18px 28px;
+    border-radius: 28px;
+    border: 4px solid var(--sakura);
+    box-shadow: 0 10px 24px rgba(236,64,122,0.18);
+  }
+  h1 {
+    font-size: 22px;
+    color: var(--sakura-deep);
+    margin: 4px 0 2px;
+    text-shadow: 2px 2px 0 var(--leaf-shadow);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--leaf-deep);
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  .date-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--sakura), var(--leaf));
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 16px;
+    margin-bottom: 8px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.08);
+  }
+
+  /* セクションインジケータ */
+  .section-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin: 8px 0 14px;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    background: #E0E0E0;
+    border-radius: 50%;
+    transition: all 0.3s;
+  }
+  .dot.active { background: var(--sakura-deep); transform: scale(1.3); }
+  .dot.done { background: var(--leaf-deep); }
+
+  .stage-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--sakura-deep);
+    margin: 2px 0 10px;
+  }
+
+  /* ══ フラッシュカード ══ */
+  .flash-card {
+    background: linear-gradient(135deg, #FFF8FB, #F1F8E9);
+    border: 4px solid var(--sakura);
+    border-radius: 26px;
+    padding: 26px 18px;
+    margin: 10px auto 14px;
+    max-width: 460px;
+    box-shadow: 0 7px 0 var(--sakura-shadow);
+    min-height: 170px;
+  }
+  .flash-english {
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--sakura-deep);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  .flash-ja {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--leaf-deep);
+    margin: 6px 0;
+    display: none;
+  }
+  .flash-example {
+    font-size: 16px;
+    color: #6D4C41;
+    font-style: italic;
+    margin: 8px 0 4px;
+    display: none;
+    line-height: 1.5;
+  }
+  .flash-example-ja {
+    font-size: 13px;
+    color: #8D6E63;
+    display: none;
+  }
+  .flash-tip {
+    font-size: 13px;
+    color: var(--leaf-deep);
+    background: var(--cream);
+    padding: 6px 12px;
+    border-radius: 12px;
+    display: none;
+    margin-top: 10px;
+    border: 2px dashed var(--leaf);
+  }
+  .flash-card.revealed .flash-ja,
+  .flash-card.revealed .flash-example,
+  .flash-card.revealed .flash-example-ja,
+  .flash-card.revealed .flash-tip { display: block; }
+
+  /* ══ ボタン類 ══ */
+  .btn {
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    padding: 13px 22px;
+    border: none;
+    border-radius: 22px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    margin: 4px;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: none !important; }
+  .btn-pink { background: var(--sakura-deep); box-shadow: 0 5px 0 #AD1457; }
+  .btn-green { background: var(--leaf-deep); box-shadow: 0 5px 0 #558B2F; }
+  .btn-sky { background: #29B6F6; box-shadow: 0 5px 0 #0288D1; }
+  .btn:disabled { opacity: 0.4; cursor: default; }
+
+  .btn-row { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+  /* ══ チャレンジ問題 ══ */
+  .q-hint {
+    background: var(--cream);
+    padding: 10px 16px;
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #8D6E63;
+    border: 2px dashed #FFD54F;
+    display: inline-block;
+    max-width: 90%;
+    margin: 6px auto 12px;
+  }
+  .q-sentence {
+    background: #FFF9C4;
+    padding: 18px 20px;
+    border-radius: 18px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    border: 3px solid #FFE082;
+    max-width: 92%;
+    margin: 8px auto 14px;
+    line-height: 1.5;
+  }
+  .q-blank {
+    display: inline-block;
+    min-width: 70px;
+    border-bottom: 4px solid var(--sakura-deep);
+    color: var(--sakura-deep);
+    padding: 0 6px;
+  }
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    max-width: 460px;
+    margin: 0 auto 10px;
+  }
+  .choice-btn {
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    padding: 14px 8px;
+    border: 3px solid var(--sakura);
+    border-radius: 14px;
+    background: #FFF8FB;
+    color: var(--sakura-deep);
+    cursor: pointer;
+    box-shadow: 0 5px 0 var(--sakura-shadow);
+    transition: all 0.1s ease;
+  }
+  .choice-btn:active { transform: translateY(4px); box-shadow: none; }
+  .choice-btn.correct { background: #DCEDC8; border-color: var(--leaf-deep); box-shadow: 0 5px 0 var(--leaf-deep); color: #33691E; }
+  .choice-btn.wrong { background: #FFCDD2; border-color: #E57373; box-shadow: 0 5px 0 #C62828; color: #B71C1C; }
+  .choice-btn:disabled { cursor: default; }
+  .choice-meaning { display: block; font-size: 11px; color: #757575; margin-top: 3px; font-weight: 500; }
+  .choice-btn.correct .choice-meaning { color: #33691E; }
+  .choice-btn.wrong .choice-meaning { color: #B71C1C; }
+
+  .q-message { font-size: 20px; font-weight: 700; margin: 10px 0; min-height: 30px; }
+  .explain-box {
+    background: var(--cream);
+    border: 2px solid #FFD54F;
+    border-radius: 14px;
+    padding: 10px 14px;
+    margin: 6px auto 10px;
+    max-width: 92%;
+    font-size: 14px;
+    color: #6D4C41;
+    line-height: 1.6;
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .explain-box.show { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .q-score { font-size: 13px; color: #9E9E9E; margin-bottom: 6px; }
+
+  /* ══ ごほうび画面 ══ */
+  .reward {
+    padding: 20px 10px;
+    animation: fadeIn 0.6s ease;
+  }
+  .reward h2 {
+    font-size: 28px;
+    color: var(--sakura-deep);
+    margin: 8px 0;
+    text-shadow: 2px 2px 0 var(--leaf-shadow);
+  }
+  .reward .big-score {
+    font-size: 54px;
+    font-weight: 700;
+    color: var(--leaf-deep);
+    margin: 14px 0;
+    text-shadow: 3px 3px 0 #FFF9C4;
+  }
+  .reward .stars {
+    font-size: 40px;
+    margin: 10px 0;
+    letter-spacing: 4px;
+  }
+  .reward p {
+    font-size: 16px;
+    color: var(--text);
+    margin: 10px auto;
+    max-width: 420px;
+    line-height: 1.7;
+  }
+  .confetti-layer {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+  }
+  .confetti {
+    position: absolute;
+    width: 10px; height: 10px;
+    top: -10px;
+    animation: fall 3s ease-in forwards;
+  }
+  @keyframes fall { to { top: 110vh; transform: rotate(720deg); } }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="date-badge">🌸 4<ruby>月<rt>がつ</rt></ruby>15<ruby>日<rt>にち</rt></ruby>（<ruby>水<rt>すい</rt></ruby>） 🌱</div>
+  <h1>きょうの<ruby>音羽<rt>おとわ</rt></ruby>ちゃんスペシャル</h1>
+  <div class="subtitle">きょうの<ruby>目標<rt>もくひょう</rt></ruby>は4つの<ruby>単語<rt>たんご</rt></ruby>！</div>
+
+  <div class="section-dots">
+    <div class="dot active" id="dot-flash"></div>
+    <div class="dot" id="dot-challenge"></div>
+    <div class="dot" id="dot-reward"></div>
+  </div>
+
+  <!-- ═══ ステージ1：フラッシュカード ═══ -->
+  <div id="stage-flash">
+    <div class="stage-label">🌟 ステージ1：きょうの<ruby>単語<rt>たんご</rt></ruby>フラッシュ</div>
+    <div class="q-score" id="flash-progress">1 / 4</div>
+    <div class="flash-card" id="flash-card">
+      <div class="flash-english" id="flash-en"></div>
+      <div class="flash-ja" id="flash-ja"></div>
+      <div class="flash-example" id="flash-ex"></div>
+      <div class="flash-example-ja" id="flash-ex-ja"></div>
+      <div class="flash-tip" id="flash-tip"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-sky" onclick="speakFlash()">🔊 <ruby>発音<rt>はつおん</rt></ruby></button>
+      <button class="btn btn-pink" id="flash-reveal-btn" onclick="revealFlash()">👀 <ruby>答<rt>こた</rt></ruby>えを<ruby>見<rt>み</rt></ruby>る</button>
+      <button class="btn btn-green hidden" id="flash-next-btn" onclick="nextFlash()">つぎへ →</button>
+    </div>
+  </div>
+
+  <!-- ═══ ステージ2：チャレンジ問題 ═══ -->
+  <div id="stage-challenge" class="hidden">
+    <div class="stage-label">🎯 ステージ2：チャレンジ<ruby>問題<rt>もんだい</rt></ruby></div>
+    <div class="q-score" id="ch-progress">1 / 4　せいかい：0</div>
+    <div class="q-hint" id="ch-hint"></div>
+    <div class="q-sentence" id="ch-sentence"></div>
+    <div class="choices" id="ch-choices"></div>
+    <div class="q-message" id="ch-message"></div>
+    <div class="explain-box" id="ch-explain"></div>
+    <div class="btn-row">
+      <button class="btn btn-sky hidden" id="ch-replay-btn" onclick="replayChallenge()">🔊 もう<ruby>一度<rt>いちど</rt></ruby></button>
+      <button class="btn btn-green hidden" id="ch-next-btn" onclick="nextChallenge()">つぎへ →</button>
+    </div>
+  </div>
+
+  <!-- ═══ ステージ3：ごほうび ═══ -->
+  <div id="stage-reward" class="hidden reward">
+    <h2>🎉 きょうも よくがんばったね！</h2>
+    <div class="stars" id="reward-stars"></div>
+    <div class="big-score" id="reward-score"></div>
+    <p id="reward-msg"></p>
+    <p>あしたも<ruby>新<rt>あたら</rt></ruby>しいもんだいが まってるよ 🌸</p>
+    <div class="btn-row">
+      <button class="btn btn-pink" onclick="location.reload()">🔄 もう<ruby>一度<rt>いちど</rt></ruby>やる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  データ：きょうの4単語＋チャレンジ4問
+// ═══════════════════════════════════════
+const flashCards = [
+  {
+    en: 'heavy',
+    ja: 'おもい',
+    ex: 'This bag is heavy.',
+    exJa: 'このかばんは おもい。',
+    tip: '反対語は light（かるい）だよ！'
+  },
+  {
+    en: 'drink',
+    ja: 'のむ',
+    ex: 'I drink orange juice.',
+    exJa: 'わたしは オレンジジュースを のむよ。',
+    tip: 'にている言葉：eat（たべる）'
+  },
+  {
+    en: 'Who',
+    ja: 'だれ',
+    ex: 'Who is your teacher?',
+    exJa: 'あなたの先生は だれ？',
+    tip: 'ひと→Who、ばしょ→Where、もの→What、ときは→When'
+  },
+  {
+    en: 'goes',
+    ja: 'いく（he/she/itのとき）',
+    ex: 'He goes to school.',
+    exJa: 'かれは 学校へ いくよ。',
+    tip: 'he・she・it のときは goに s がついて goes になるよ！'
+  }
+];
+
+const challenges = [
+  {
+    sentence: 'This box is ( ). I can\'t lift it.',
+    hint: 'この はこは おもい。もちあげられないよ。',
+    choices: ['heavy', 'small', 'old', 'cold'],
+    meanings: { heavy: 'おもい', small: 'ちいさい', old: 'ふるい', cold: 'さむい・つめたい' },
+    answer: 'heavy',
+    explanation: 'heavy（ヘビー）= おもい。lift は「もちあげる」。おもすぎて もちあげられない、って意味だよ。'
+  },
+  {
+    sentence: 'Kate ( ) milk every morning.',
+    hint: 'ケイトは まいあさ ミルクを のむよ。',
+    choices: ['drinks', 'eats', 'reads', 'sings'],
+    meanings: { drinks: 'のむ', eats: 'たべる', reads: 'よむ', sings: 'うたう' },
+    answer: 'drinks',
+    explanation: 'drink（ドリンク）= のむ。ミルクは のむ ものだね。Kate は she だから drinks と s がつくよ！'
+  },
+  {
+    sentence: 'A: ( ) is that girl? B: She is my sister.',
+    hint: 'A: あの おんなのこは だれ？ B: わたしの いもうとだよ。',
+    choices: ['Who', 'Where', 'When', 'What'],
+    meanings: { Who: 'だれ', Where: 'どこ', When: 'いつ', What: 'なに' },
+    answer: 'Who',
+    explanation: 'Who（フー）= だれ。「わたしの いもうと」と ひとを こたえているから Who だよ。'
+  },
+  {
+    sentence: 'Tom ( ) to the park on Sundays.',
+    hint: 'トムは にちようびに こうえんへ いくよ。',
+    choices: ['goes', 'go', 'going', 'went'],
+    meanings: { goes: 'いく(s)', go: 'いく', going: 'いっている', went: 'いった' },
+    answer: 'goes',
+    explanation: 'Tom は he だから goes！ I/you/we は go、he/she/it は goes。これが「三単現のs」だよ。'
+  }
+];
+
+// ═══════════════════════════════════════
+//  音声読み上げ
+// ═══════════════════════════════════════
+let bestVoice = null;
+function initVoice() {
+  if (!('speechSynthesis' in window)) return;
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) return;
+  const en = voices.filter(v => v.lang && v.lang.startsWith('en'));
+  const prefer = ['Samantha', 'Karen', 'Moira', 'Serena', 'Google US English'];
+  for (const name of prefer) {
+    const v = en.find(v => v.name === name);
+    if (v) { bestVoice = v; return; }
+  }
+  bestVoice = en[0] || null;
+}
+if ('speechSynthesis' in window) {
+  speechSynthesis.onvoiceschanged = initVoice;
+  initVoice();
+}
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'en-US';
+  utt.rate = 0.85;
+  utt.pitch = 1.1;
+  if (bestVoice) utt.voice = bestVoice;
+  speechSynthesis.speak(utt);
+}
+
+// ═══════════════════════════════════════
+//  ステージ1：フラッシュカード
+// ═══════════════════════════════════════
+let flashIdx = 0;
+
+function loadFlash() {
+  const card = flashCards[flashIdx];
+  document.getElementById('flash-en').textContent = card.en;
+  document.getElementById('flash-ja').textContent = card.ja;
+  document.getElementById('flash-ex').textContent = card.ex;
+  document.getElementById('flash-ex-ja').textContent = card.exJa;
+  document.getElementById('flash-tip').textContent = '💡 ' + card.tip;
+  document.getElementById('flash-card').classList.remove('revealed');
+  document.getElementById('flash-reveal-btn').classList.remove('hidden');
+  document.getElementById('flash-next-btn').classList.add('hidden');
+  document.getElementById('flash-progress').textContent = (flashIdx + 1) + ' / ' + flashCards.length;
+  setTimeout(() => speak(card.en), 250);
+}
+
+function speakFlash() {
+  const card = flashCards[flashIdx];
+  const revealed = document.getElementById('flash-card').classList.contains('revealed');
+  speak(revealed ? card.ex : card.en);
+}
+
+function revealFlash() {
+  document.getElementById('flash-card').classList.add('revealed');
+  document.getElementById('flash-reveal-btn').classList.add('hidden');
+  document.getElementById('flash-next-btn').classList.remove('hidden');
+  setTimeout(() => speak(flashCards[flashIdx].ex), 300);
+}
+
+function nextFlash() {
+  flashIdx++;
+  if (flashIdx >= flashCards.length) {
+    goToChallenge();
+  } else {
+    loadFlash();
+  }
+}
+
+// ═══════════════════════════════════════
+//  ステージ2：チャレンジ
+// ═══════════════════════════════════════
+let chIdx = 0;
+let chScore = 0;
+let chWaiting = false;
+
+function goToChallenge() {
+  document.getElementById('stage-flash').classList.add('hidden');
+  document.getElementById('stage-challenge').classList.remove('hidden');
+  document.getElementById('dot-flash').classList.remove('active');
+  document.getElementById('dot-flash').classList.add('done');
+  document.getElementById('dot-challenge').classList.add('active');
+  loadChallenge();
+}
+
+function loadChallenge() {
+  const q = challenges[chIdx];
+  const sentenceHtml = q.sentence.replace('( )', '<span class="q-blank">　　　</span>');
+  document.getElementById('ch-sentence').innerHTML = sentenceHtml;
+  document.getElementById('ch-hint').textContent = q.hint;
+  document.getElementById('ch-message').textContent = '';
+  document.getElementById('ch-message').style.color = '';
+  document.getElementById('ch-explain').classList.remove('show');
+  document.getElementById('ch-next-btn').classList.add('hidden');
+  document.getElementById('ch-replay-btn').classList.add('hidden');
+  document.getElementById('ch-progress').textContent =
+    (chIdx + 1) + ' / ' + challenges.length + '　せいかい：' + chScore;
+
+  const choicesEl = document.getElementById('ch-choices');
+  choicesEl.innerHTML = '';
+  q.choices.forEach(word => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = word;
+    btn.onclick = () => selectChoice(btn, word);
+    choicesEl.appendChild(btn);
+  });
+  chWaiting = false;
+}
+
+function revealAllMeanings(q) {
+  document.querySelectorAll('#ch-choices .choice-btn').forEach(b => {
+    const word = b.childNodes[0].nodeValue || b.textContent;
+    if (q.meanings[word] && !b.querySelector('.choice-meaning')) {
+      const span = document.createElement('span');
+      span.className = 'choice-meaning';
+      span.textContent = q.meanings[word];
+      b.appendChild(span);
+    }
+  });
+  const exp = document.getElementById('ch-explain');
+  exp.innerHTML = '💡 ' + q.explanation;
+  exp.classList.add('show');
+}
+
+function selectChoice(btn, word) {
+  if (chWaiting) {
+    if (word === challenges[chIdx].answer) {
+      btn.classList.remove('wrong');
+      btn.classList.add('correct');
+      document.getElementById('ch-message').textContent = '🌟 そう、これが せいかい！';
+      document.getElementById('ch-message').style.color = '#558B2F';
+      document.getElementById('ch-next-btn').classList.remove('hidden');
+      chWaiting = false;
+      speakFullSentence();
+    }
+    return;
+  }
+  const q = challenges[chIdx];
+  const correct = word === q.answer;
+  const msg = document.getElementById('ch-message');
+
+  if (correct) {
+    chScore++;
+    document.querySelectorAll('#ch-choices .choice-btn').forEach(b => {
+      b.disabled = true;
+      if (b.textContent === q.answer) b.classList.add('correct');
+    });
+    msg.textContent = '🎉 せいかい！すごい！';
+    msg.style.color = '#558B2F';
+    revealAllMeanings(q);
+    document.getElementById('ch-next-btn').classList.remove('hidden');
+    document.getElementById('ch-replay-btn').classList.remove('hidden');
+    speakFullSentence();
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('#ch-choices .choice-btn').forEach(b => {
+      if (b.textContent === q.answer) {
+        b.classList.add('correct');
+      } else if (b.textContent !== word) {
+        b.disabled = true;
+      }
+    });
+    btn.disabled = true;
+    msg.textContent = '😢 ざんねん… せいかいをタップしてね！';
+    msg.style.color = '#C62828';
+    revealAllMeanings(q);
+    document.getElementById('ch-replay-btn').classList.remove('hidden');
+    chWaiting = true;
+  }
+}
+
+function speakFullSentence() {
+  const q = challenges[chIdx];
+  const full = q.sentence.replace('( )', q.answer);
+  setTimeout(() => speak(full), 300);
+}
+
+function replayChallenge() {
+  speakFullSentence();
+}
+
+function nextChallenge() {
+  chIdx++;
+  if (chIdx >= challenges.length) {
+    goToReward();
+  } else {
+    loadChallenge();
+  }
+}
+
+// ═══════════════════════════════════════
+//  ステージ3：ごほうび
+// ═══════════════════════════════════════
+function goToReward() {
+  document.getElementById('stage-challenge').classList.add('hidden');
+  document.getElementById('stage-reward').classList.remove('hidden');
+  document.getElementById('dot-challenge').classList.remove('active');
+  document.getElementById('dot-challenge').classList.add('done');
+  document.getElementById('dot-reward').classList.add('active');
+
+  const total = challenges.length;
+  document.getElementById('reward-score').textContent = chScore + ' / ' + total + ' せいかい！';
+
+  let stars = '';
+  for (let i = 0; i < total; i++) stars += i < chScore ? '⭐' : '☆';
+  document.getElementById('reward-stars').textContent = stars;
+
+  const msgs = [
+    'まだ はじめたばかり。まいにち つづけたら ぜったい のびるよ！',
+    'よくできたね！あと ちょっとで パーフェクトだったね。',
+    'すばらしい！むずかしい もんだいを よくがんばったね。',
+    'すごい！ほとんど せいかい！音羽ちゃんの ちから、のびてるね。',
+    'パーフェクト！！かんぺき！きょうの まちがいは もう だいじょうぶだね 🌸'
+  ];
+  document.getElementById('reward-msg').textContent = msgs[Math.min(chScore, msgs.length - 1)];
+
+  // ログ保存
+  try {
+    const log = {
+      date: '2026-04-15',
+      flashCards: flashCards.map(c => c.en),
+      challengeScore: chScore,
+      challengeTotal: total,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('otowa_daily_2026-04-15', JSON.stringify(log));
+  } catch (e) {}
+
+  launchConfetti();
+}
+
+function launchConfetti() {
+  const layer = document.createElement('div');
+  layer.className = 'confetti-layer';
+  document.body.appendChild(layer);
+  const colors = ['#FFB7C5', '#AED581', '#FFD54F', '#B3E5FC', '#F06292', '#7CB342'];
+  for (let i = 0; i < 60; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + '%';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animationDelay = (Math.random() * 1.5) + 's';
+    c.style.animationDuration = (2 + Math.random() * 2) + 's';
+    if (Math.random() > 0.5) c.style.borderRadius = '50%';
+    layer.appendChild(c);
+  }
+  setTimeout(() => layer.remove(), 5500);
+}
+
+// ═══════════════════════════════════════
+//  初期化
+// ═══════════════════════════════════════
+loadFlash();
+</script>
+</body>
+</html>
