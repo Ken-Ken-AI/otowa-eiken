@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="きょうの音羽">
 <meta name="theme-color" content="#FFF5F7">
-<title>4がつ17にち 音羽ちゃん専用</title>
+<title>4がつ16にち 音羽ちゃん専用</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
@@ -328,7 +328,7 @@
 <body>
 
 <div class="container">
-  <div class="date-badge">🌸 4<ruby>月<rt>がつ</rt></ruby>17<ruby>日<rt>にち</rt></ruby>（<ruby>土<rt>ど</rt></ruby>） 🌱</div>
+  <div class="date-badge">🌸 4<ruby>月<rt>がつ</rt></ruby>16<ruby>日<rt>にち</rt></ruby>（<ruby>金<rt>きん</rt></ruby>） 🌱</div>
   <h1>きょうの<ruby>音羽<rt>おとわ</rt></ruby>ちゃんスペシャル</h1>
   <div class="subtitle">きょうのテーマは「<ruby>学校<rt>がっこう</rt></ruby>のことば」と「<ruby>会話<rt>かいわ</rt></ruby>」！</div>
 
@@ -397,6 +397,20 @@
     <div class="btn-row">
       <button class="btn btn-pink" onclick="location.reload()">🔄 もう<ruby>一度<rt>いちど</rt></ruby>やる</button>
     </div>
+
+    <!-- 保護者むけ：ログ出力 -->
+    <details style="margin-top:28px; text-align:left; max-width:500px; margin-left:auto; margin-right:auto;">
+      <summary style="cursor:pointer; font-size:13px; color:#888; padding:8px;">📊 ほごしゃむけ：<ruby>学習<rt>がくしゅう</rt></ruby>ログ</summary>
+      <div style="padding:10px; background:#F5F5F5; border-radius:12px; margin-top:8px;">
+        <div style="text-align:center; margin-bottom:10px;">
+          <button class="btn btn-sky" style="font-size:14px; padding:8px 16px;" onclick="copyLog()">📋 コピー</button>
+          <button class="btn btn-green" style="font-size:14px; padding:8px 16px;" onclick="downloadLog()">⬇️ ダウンロード</button>
+        </div>
+        <div id="copy-result" style="font-size:12px; color:#558B2F; min-height:16px; text-align:center;"></div>
+        <textarea id="log-textarea" readonly style="width:100%; height:180px; font-size:11px; font-family:monospace; padding:8px; border:1px solid #ccc; border-radius:8px; background:#fff; color:#333; resize:vertical; box-sizing:border-box;" onclick="this.select()"></textarea>
+        <div style="font-size:11px; color:#888; margin-top:6px;">※ タップで<ruby>全選択<rt>ぜんせんたく</rt></ruby>できるよ</div>
+      </div>
+    </details>
   </div>
 </div>
 
@@ -885,7 +899,7 @@ function goToReward() {
   // ログ保存
   try {
     const log = {
-      date: '2026-04-17',
+      date: '2026-04-16',
       flashCards: flashCards.map(c => c.en),
       challengeScore: chScore,
       challengeTotal: totalCh,
@@ -893,10 +907,65 @@ function goToReward() {
       conversationTotal: totalCv,
       timestamp: new Date().toISOString()
     };
-    localStorage.setItem('otowa_daily_2026-04-17', JSON.stringify(log));
+    localStorage.setItem('otowa_daily_2026-04-16', JSON.stringify(log));
   } catch (e) {}
 
+  populateLogTextarea();
   launchConfetti();
+}
+
+// ═══════════════════════════════════════
+//  ログ出力（保護者向け）
+// ═══════════════════════════════════════
+function collectAllLogs() {
+  const logs = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('otowa_daily_')) {
+      try {
+        logs.push(JSON.parse(localStorage.getItem(key)));
+      } catch (e) {}
+    }
+  }
+  logs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  return logs;
+}
+
+function populateLogTextarea() {
+  const logs = collectAllLogs();
+  document.getElementById('log-textarea').value = JSON.stringify(logs, null, 2);
+}
+
+function copyLog() {
+  const ta = document.getElementById('log-textarea');
+  const result = document.getElementById('copy-result');
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  const text = ta.value;
+  const done = () => { result.textContent = '✅ コピーしたよ！'; setTimeout(() => result.textContent = '', 2500); };
+  const fail = () => { result.textContent = '⚠️ コピーできなかった…テキストをタップして手動コピーしてね'; };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => {
+      try { document.execCommand('copy'); done(); } catch (e) { fail(); }
+    });
+  } else {
+    try { document.execCommand('copy'); done(); } catch (e) { fail(); }
+  }
+}
+
+function downloadLog() {
+  const text = document.getElementById('log-textarea').value;
+  const blob = new Blob([text], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'eiken5-log-2026-04-16.json';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+  const result = document.getElementById('copy-result');
+  result.textContent = '✅ ダウンロードしたよ！';
+  setTimeout(() => result.textContent = '', 2500);
 }
 
 function launchConfetti() {
