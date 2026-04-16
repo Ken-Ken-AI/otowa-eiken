@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="えいけん5きゅう">
+  <meta name="theme-color" content="#FFF0F5">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="manifest" href="manifest.json">
+  <title>英検5級 英語トレーニング</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #FF8A80;
+      --bg-color: #FFF0F5;
+      --train-color: #FFF59D;
+      --track-border: #80DEEA;
+      --success: #4DB6AC;
+      --error: #FF5252;
+      --text-color: #5D4037;
+    }
+
+    body {
+      font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
+      text-align: center;
+      background-color: var(--bg-color);
+      background-image: radial-gradient(#FFCDD2 15%, transparent 16%), radial-gradient(#FFCDD2 15%, transparent 16%);
+      background-size: 40px 40px;
+      background-position: 0 0, 20px 20px;
+      margin: 0;
+      padding: 10px 15px 30px;
+      color: var(--text-color);
+      touch-action: manipulation;
+    }
+
+    /* ─── タブバー ─── */
+    .tab-bar {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 10px 16px;
+      border: 3px solid #FFCDD2;
+      border-radius: 20px;
+      background-color: #fff;
+      color: var(--text-color);
+      cursor: pointer;
+      box-shadow: 0 4px 0 #FFCDD2;
+      transition: all 0.1s ease;
+    }
+
+    .tab-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+      border-color: #FF5252;
+      box-shadow: 0 4px 0 #FF5252;
+    }
+
+    .tab-btn:active { transform: translateY(4px); box-shadow: none; }
+
+    /* ─── 共通コンテナ ─── */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.95);
+      padding: 25px 20px;
+      border-radius: 30px;
+      box-shadow: 0 10px 25px rgba(255,138,128,0.2);
+      border: 3px solid #FFCDD2;
+      position: relative;
+    }
+
+    h1 { color: var(--primary-color); font-size: 26px; margin-bottom: 5px; text-shadow: 2px 2px 0px #FFE0B2; }
+
+    ruby { ruby-align: center; }
+    rt { font-size: 12px; color: #8D6E63; }
+
+    .animal-icon { animation: bounce 2s infinite ease-in-out; display: block; margin: 10px auto; filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.1)); }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* ─── 共通ボタン ─── */
+    button.action {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      padding: 14px 30px;
+      color: white;
+      border: none;
+      border-radius: 28px;
+      box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+    button.action:active { transform: translateY(6px); box-shadow: none; }
+
+    /* ─── セット進捗 ─── */
+    .set-progress { font-size: 16px; font-weight: 700; color: #8D6E63; margin: 4px 0; }
+    .set-progress-bar { width: 100%; height: 10px; background: #FFCDD2; border-radius: 5px; margin: 4px 0 8px; overflow: hidden; }
+    .set-progress-fill { height: 100%; background: linear-gradient(90deg, #FF8A80, #4DB6AC); border-radius: 5px; transition: width 0.3s; }
+
+    /* ─── 解説ボックス ─── */
+    .explanation-box { background: #FFF8E1; border: 2px solid #FFD54F; border-radius: 16px; padding: 12px 16px; margin: 8px 0; font-size: 16px; line-height: 1.6; color: #5D4037; animation: fadeIn 0.4s ease; display: none; }
+    .explanation-box.show { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ─── 正解タップ促し ─── */
+    .choice-btn.glow { animation: glowPulse 0.8s infinite alternate; }
+    @keyframes glowPulse { from { box-shadow: 0 5px 0 #388E3C, 0 0 8px rgba(76,175,80,0.4); } to { box-shadow: 0 5px 0 #388E3C, 0 0 20px rgba(76,175,80,0.8); } }
+    .tap-prompt { font-size: 17px; font-weight: 700; color: var(--success); margin-top: 4px; animation: fadeIn 0.4s ease; }
+
+    /* ─── セットクリア演出 ─── */
+    .set-complete { display: none; text-align: center; padding: 20px; }
+    .set-complete.show { display: block; }
+    .set-complete h2 { font-size: 28px; color: var(--primary-color); margin: 10px 0; }
+    .set-complete .score-display { font-size: 22px; font-weight: 700; color: var(--success); margin: 10px 0; }
+    .confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+    .confetti { position: absolute; width: 10px; height: 10px; top: -10px; animation: confettiFall 3s ease-in forwards; }
+    @keyframes confettiFall { to { top: 110vh; transform: rotate(720deg); } }
+
+    .controls { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+
+    .check-btn { background-color: #66BB6A; box-shadow: 0 6px 0 #43A047; border: 2px solid #81C784; }
+    .reset-btn { background-color: #FF8A65; box-shadow: 0 6px 0 #F4511E; border: 2px solid #FFAB91; }
+    .next-btn  { background-color: #4FC3F7; box-shadow: 0 6px 0 #039BE5; border: 2px solid #81D4FA; display: none; }
+
+    /* ─── 大問3（電車パズル）スタイル ─── */
+    .question-box {
+      background-color: #E0F7FA;
+      padding: 15px 25px;
+      border-radius: 20px;
+      font-size: 20px;
+      font-weight: 700;
+      margin: 15px auto 20px;
+      color: #0097A7;
+      border: 3px dashed #B2EBF2;
+      display: inline-block;
+      min-width: 60%;
+    }
+
+    #train-track {
+      min-height: 80px;
+      border: 5px dashed var(--track-border);
+      background-color: #FAFAFA;
+      border-radius: 20px;
+      margin: 15px auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 10px;
+      padding: 15px;
+      transition: background-color 0.3s;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.05);
+    }
+
+    .word-btn {
+      font-size: 22px;
+      font-weight: 700;
+      padding: 12px 20px;
+      border: 3px solid #FFD54F;
+      border-radius: 13px;
+      background-color: var(--train-color);
+      color: var(--text-color);
+      cursor: pointer;
+      box-shadow: 0 5px 0 #FFC107, 0 8px 8px rgba(0,0,0,0.1);
+      transition: all 0.1s ease;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .word-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #FFC107; }
+    .word-btn.hidden { visibility: hidden; }
+
+    #words-pool { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin: 20px 0; min-height: 70px; }
+
+    #message { font-size: 22px; font-weight: 700; margin-top: 15px; min-height: 45px; line-height: 1.4; text-shadow: 1px 1px 0px rgba(255,255,255,0.8); }
+
+    /* ─── 単語フラッシュカード ─── */
+    .vocab-progress { font-size: 15px; color: #9E9E9E; margin-bottom: 8px; }
+    .vocab-progress-bar { width: 100%; max-width: 400px; height: 10px; background-color: #E0E0E0; border-radius: 5px; margin: 6px auto 18px; overflow: hidden; }
+    .vocab-progress-fill { height: 100%; background: linear-gradient(90deg, #CE93D8, #6A1B9A); border-radius: 5px; transition: width 0.4s ease; }
+
+    .vocab-card {
+      background: linear-gradient(135deg, #EDE7F6, #F3E5F5);
+      border: 3px solid #CE93D8;
+      border-radius: 25px;
+      padding: 30px 20px;
+      margin: 5px auto 18px;
+      max-width: 500px;
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 7px 0 #AB47BC;
+    }
+
+    .vocab-english { font-size: 46px; font-weight: 700; color: #4A148C; margin-bottom: 10px; }
+    .vocab-japanese { font-size: 22px; color: #6A1B9A; margin-bottom: 8px; display: none; }
+    .vocab-example { font-size: 15px; color: #7B1FA2; font-style: italic; display: none; margin-top: 4px; }
+
+    .vocab-controls { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+
+    .btn-reveal {
+      font-family: 'Zen Maru Gothic', sans-serif; font-size: 19px; font-weight: 700;
+      padding: 13px 28px; background-color: #AB47BC; color: white; border: none;
+      border-radius: 24px; box-shadow: 0 5px 0 #6A1B9A; cursor: pointer; transition: all 0.1s ease;
+    }
+    .btn-reveal:active { transform: translateY(5px); box-shadow: none; }
+
+    .btn-ok {
+      font-family: 'Zen Maru Gothic', sans-serif; font-size: 19px; font-weight: 700;
+      padding: 13px 24px; background-color: #66BB6A; color: white; border: none;
+      border-radius: 24px; box-shadow: 0 5px 0 #388E3C; cursor: pointer; transition: all 0.1s ease; display: none;
+    }
+    .btn-ok:active { transform: translateY(5px); box-shadow: none; }
+
+    .btn-retry {
+      font-family: 'Zen Maru Gothic', sans-serif; font-size: 19px; font-weight: 700;
+      padding: 13px 24px; background-color: #FF8A65; color: white; border: none;
+      border-radius: 24px; box-shadow: 0 5px 0 #E64A19; cursor: pointer; transition: all 0.1s ease; display: none;
+    }
+    .btn-retry:active { transform: translateY(5px); box-shadow: none; }
+
+    .btn-speak {
+      font-family: 'Zen Maru Gothic', sans-serif; font-size: 19px; font-weight: 700;
+      padding: 13px 24px; background-color: #4FC3F7; color: white; border: none;
+      border-radius: 24px; box-shadow: 0 5px 0 #0288D1; cursor: pointer; transition: all 0.1s ease; display: none;
+    }
+    .btn-speak:active { transform: translateY(5px); box-shadow: none; }
+
+    .vocab-done-msg { font-size: 20px; font-weight: 700; margin: 10px 0; min-height: 30px; }
+
+    /* ─── 単語 全体進捗 ─── */
+    .vocab-global-progress { font-size: 16px; font-weight: 700; color: #2E7D32; margin-bottom: 4px; }
+    .vocab-global-bar { width: 100%; max-width: 400px; height: 12px; background-color: #E0E0E0; border-radius: 6px; margin: 4px auto 12px; overflow: hidden; }
+    .vocab-global-fill { height: 100%; background: linear-gradient(90deg, #66BB6A, #2E7D32); border-radius: 6px; transition: width 0.4s ease; }
+
+    .vocab-mode-btns { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .btn-mode {
+      font-family: 'Zen Maru Gothic', sans-serif; font-size: 15px; font-weight: 700;
+      padding: 8px 18px; border: 2px solid #CE93D8; border-radius: 20px;
+      background-color: #fff; color: #6A1B9A; cursor: pointer; transition: all 0.1s ease;
+    }
+    .btn-mode.active { background-color: #AB47BC; color: #fff; border-color: #6A1B9A; }
+    .btn-mode:active { transform: translateY(2px); }
+    .btn-reset {
+      font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 700;
+      padding: 6px 14px; border: 2px solid #BDBDBD; border-radius: 16px;
+      background-color: #fff; color: #9E9E9E; cursor: pointer;
+    }
+    .btn-reset:hover { color: #F44336; border-color: #F44336; }
+    .vocab-session-end {
+      background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+      border: 3px solid #81C784; border-radius: 25px;
+      padding: 30px 20px; margin: 10px auto; max-width: 500px;
+    }
+    .vocab-session-end h2 { color: #2E7D32; font-size: 24px; margin: 0 0 8px; }
+    .vocab-session-end p { color: #388E3C; font-size: 16px; margin: 0 0 16px; }
+    .btn-next-session {
+      font-family: 'Zen Maru Gothic', sans-serif; font-size: 19px; font-weight: 700;
+      padding: 13px 28px; background-color: #66BB6A; color: white; border: none;
+      border-radius: 24px; box-shadow: 0 5px 0 #388E3C; cursor: pointer;
+    }
+    .btn-next-session:active { transform: translateY(5px); box-shadow: none; }
+
+    /* ─── 大問1・大問2（4択）スタイル ─── */
+    .q-hint-box {
+      background-color: #E0F7FA; padding: 12px 20px; border-radius: 18px;
+      font-size: 17px; font-weight: 700; margin: 8px auto 12px;
+      color: #0097A7; border: 3px dashed #B2EBF2; display: inline-block; min-width: 55%;
+    }
+
+    .q-sentence-box {
+      background-color: #FFF9C4; padding: 18px 22px; border-radius: 18px;
+      font-size: 20px; font-weight: 700; margin: 8px auto 16px;
+      color: #5D4037; border: 3px solid #FFE082; max-width: 90%;
+    }
+
+    .q-blank {
+      display: inline-block; min-width: 80px;
+      border-bottom: 4px solid #FF8A80; color: #FF8A80; padding: 0 5px;
+    }
+
+    .dialogue-box {
+      background-color: #F3E5F5; padding: 18px 22px; border-radius: 18px;
+      font-size: 19px; font-weight: 700; margin: 8px auto 16px;
+      color: #4A148C; border: 3px solid #CE93D8; max-width: 90%; text-align: left;
+    }
+
+    .dialogue-a { margin-bottom: 12px; color: #1565C0; }
+    .dialogue-b { color: #880E4F; }
+
+    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 580px; margin: 0 auto 15px; }
+
+    .choice-btn {
+      font-family: 'Zen Maru Gothic', sans-serif; font-size: 17px; font-weight: 700;
+      padding: 15px 10px; border: 3px solid #B2EBF2; border-radius: 14px;
+      background-color: #E0F7FA; color: #006064;
+      cursor: pointer; box-shadow: 0 5px 0 #80DEEA; transition: all 0.1s ease;
+    }
+    .choice-btn:active { transform: translateY(5px); box-shadow: none; }
+    .choice-btn.correct { background-color: #C8E6C9; border-color: #4CAF50; box-shadow: 0 5px 0 #388E3C; color: #1B5E20; }
+    .choice-btn.wrong   { background-color: #FFCDD2; border-color: #F44336; box-shadow: 0 5px 0 #C62828; color: #B71C1C; }
+    .choice-btn:disabled { cursor: default; }
+    .choice-meaning { display: block; font-size: 12px; color: #888; margin-top: 2px; }
+
+    .q-message { font-size: 21px; font-weight: 700; min-height: 36px; margin: 10px 0; }
+
+    .q-next-btn {
+      font-family: 'Zen Maru Gothic', sans-serif; font-size: 20px; font-weight: 700;
+      padding: 14px 32px; background-color: #4FC3F7; color: white; border: none;
+      border-radius: 28px; box-shadow: 0 6px 0 #039BE5; cursor: pointer;
+      transition: all 0.1s ease; display: none; margin-top: 8px;
+    }
+    .q-next-btn:active { transform: translateY(6px); box-shadow: none; }
+
+    .q-score { font-size: 14px; color: #9E9E9E; margin-bottom: 10px; }
+
+    /* ─── データ操作バー ─── */
+    .data-bar {
+      text-align: right; margin-bottom: 8px; max-width: 800px;
+      margin-left: auto; margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- タブバー -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('vocab')">📖 <ruby>単語<rt>たんご</rt></ruby></button>
+    <button class="tab-btn" onclick="switchTab('q1')">🔲 <ruby>大問<rt>だいもん</rt></ruby>1</button>
+    <button class="tab-btn" onclick="switchTab('q2')">💬 <ruby>大問<rt>だいもん</rt></ruby>2</button>
+    <button class="tab-btn" onclick="switchTab('q3')">🚂 <ruby>大問<rt>だいもん</rt></ruby>3</button>
+  </div>
+
+  <!-- データ操作バー -->
+  <div class="data-bar">
+    <button class="btn-reset" onclick="exportAnswerLog()" style="font-size:12px;">📊 データをダウンロード</button>
+    <button class="btn-reset" onclick="resetAnswerLog()" style="font-size:11px;margin-left:4px;">🗑️ データリセット</button>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       単語フラッシュカードモード
+  ════════════════════════════════════════ -->
+  <div id="mode-vocab" class="container">
+    <h1>📖 <ruby>単語<rt>たんご</rt></ruby>フラッシュカード</h1>
+
+    <!-- 全体進捗 -->
+    <div class="vocab-global-progress" id="vocab-global-text"></div>
+    <div class="vocab-global-bar"><div class="vocab-global-fill" id="vocab-global-fill" style="width:0%"></div></div>
+
+    <!-- モード切替 -->
+    <div class="vocab-mode-btns">
+      <button class="btn-mode active" id="btn-mode-normal" onclick="setVocabMode('normal')">📚 まだ<ruby>覚<rt>おぼ</rt></ruby>えてない<ruby>単語<rt>たんご</rt></ruby></button>
+      <button class="btn-mode" id="btn-mode-review" onclick="setVocabMode('review')">🌟 <ruby>覚<rt>おぼ</rt></ruby>えた<ruby>単語<rt>たんご</rt></ruby>を<ruby>復習<rt>ふくしゅう</rt></ruby></button>
+    </div>
+
+    <!-- セッション進捗 -->
+    <div class="vocab-progress" id="vocab-progress-text"></div>
+    <div class="vocab-progress-bar"><div class="vocab-progress-fill" id="vocab-progress-fill" style="width:0%"></div></div>
+
+    <!-- カードエリア -->
+    <div id="vocab-card-area">
+      <div class="vocab-card">
+        <div class="vocab-english" id="vocab-english"></div>
+        <div class="vocab-japanese" id="vocab-japanese"></div>
+        <div class="vocab-example" id="vocab-example"></div>
+      </div>
+      <div class="vocab-done-msg" id="vocab-done-msg"></div>
+      <div class="vocab-controls">
+        <button class="btn-speak" id="btn-speak" onclick="speakVocab()">🔊 <ruby>発音<rt>はつおん</rt></ruby></button>
+        <button class="btn-reveal" id="btn-reveal" onclick="revealVocab()">👀 <ruby>答<rt>こた</rt></ruby>えを<ruby>見<rt>み</rt></ruby>る</button>
+        <button class="btn-ok" id="btn-ok" onclick="vocabResult(true)">⭕ おぼえた！</button>
+        <button class="btn-retry" id="btn-retry" onclick="vocabResult(false)">❌ もう<ruby>一度<rt>いちど</rt></ruby></button>
+      </div>
+    </div>
+
+    <!-- セッション完了パネル -->
+    <div id="vocab-session-end" style="display:none" class="vocab-session-end">
+      <h2 id="vocab-session-end-title"></h2>
+      <p id="vocab-session-end-msg"></p>
+      <button class="btn-next-session" id="btn-next-session" onclick="startNextSession()" style="display:none"></button>
+    </div>
+
+    <!-- リセット -->
+    <div style="margin-top: 16px;">
+      <button class="btn-reset" onclick="resetVocabProgress()">🔄 <ruby>最初<rt>さいしょ</rt></ruby>からやり<ruby>直<rt>なお</rt></ruby>す</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       大問1：語句空所補充
+  ════════════════════════════════════════ -->
+  <div id="mode-q1" class="container" style="display:none">
+    <h1>🔲 <ruby>大問<rt>だいもん</rt></ruby>1：<ruby>語句<rt>ごく</rt></ruby><ruby>空所<rt>くうしょ</rt></ruby><ruby>補充<rt>ほじゅう</rt></ruby></h1>
+    <p>（　）に<ruby>入<rt>はい</rt></ruby>る<ruby>言葉<rt>ことば</rt></ruby>を4つから<ruby>選<rt>えら</rt></ruby>ぼう！</p>
+    <div class="set-progress" id="q1-progress"></div>
+    <div class="set-progress-bar"><div class="set-progress-fill" id="q1-progress-fill"></div></div>
+    <div id="q1-quiz-area">
+      <div class="q-score" id="q1-score"></div>
+      <div class="q-hint-box" id="q1-hint"></div>
+      <div class="q-sentence-box" id="q1-sentence"></div>
+      <div class="choices-grid" id="q1-choices"></div>
+      <div class="q-message" id="q1-message"></div>
+      <div class="explanation-box" id="q1-explanation"></div>
+      <button class="q-next-btn" id="q1-next-btn" onclick="nextQ1()"><ruby>次<rt>つぎ</rt></ruby>の<ruby>問題<rt>もんだい</rt></ruby>へ ➔</button>
+    </div>
+    <div class="set-complete" id="q1-set-complete">
+      <h2 id="q1-complete-title"></h2>
+      <div class="score-display" id="q1-complete-score"></div>
+      <button class="action" style="background:var(--success)" onclick="startQ1Set()">もう1セットやる？ ➔</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       大問2：会話文空所補充
+  ════════════════════════════════════════ -->
+  <div id="mode-q2" class="container" style="display:none">
+    <h1>💬 <ruby>大問<rt>だいもん</rt></ruby>2：<ruby>会話文<rt>かいわぶん</rt></ruby></h1>
+    <p>B の（　）に<ruby>入<rt>はい</rt></ruby>る<ruby>返事<rt>へんじ</rt></ruby>を<ruby>選<rt>えら</rt></ruby>ぼう！</p>
+    <div class="set-progress" id="q2-progress"></div>
+    <div class="set-progress-bar"><div class="set-progress-fill" id="q2-progress-fill"></div></div>
+    <div id="q2-quiz-area">
+      <div class="q-score" id="q2-score"></div>
+      <div class="q-hint-box" id="q2-hint"></div>
+      <div class="dialogue-box" id="q2-dialogue"></div>
+      <button class="btn-speak" id="q2-speak-btn" onclick="replayQ2Dialogue()" style="display:none;margin:4px auto 8px;">🔊 もう<ruby>一度<rt>いちど</rt></ruby><ruby>聞<rt>き</rt></ruby>く</button>
+      <div class="choices-grid" id="q2-choices"></div>
+      <div class="q-message" id="q2-message"></div>
+      <div class="explanation-box" id="q2-explanation"></div>
+      <button class="q-next-btn" id="q2-next-btn" onclick="nextQ2()"><ruby>次<rt>つぎ</rt></ruby>の<ruby>問題<rt>もんだい</rt></ruby>へ ➔</button>
+    </div>
+    <div class="set-complete" id="q2-set-complete">
+      <h2 id="q2-complete-title"></h2>
+      <div class="score-display" id="q2-complete-score"></div>
+      <button class="action" style="background:var(--success)" onclick="startQ2Set()">もう1セットやる？ ➔</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       大問3：語句整序（電車パズル）
+  ════════════════════════════════════════ -->
+  <div id="mode-q3" class="container" style="display:none">
+    <h1>🚂 <ruby>英語<rt>えいご</rt></ruby>の<ruby>電車<rt>でんしゃ</rt></ruby>パズル 🧩</h1>
+    <p><ruby>単語<rt>たんご</rt></ruby>を<ruby>順番<rt>じゅんばん</rt></ruby>にタップして、<ruby>正<rt>ただ</rt></ruby>しい<ruby>文<rt>ぶん</rt></ruby>を<ruby>作<rt>つく</rt></ruby>ろう！</p>
+    <div class="set-progress" id="q3-progress"></div>
+    <div class="set-progress-bar"><div class="set-progress-fill" id="q3-progress-fill"></div></div>
+    <div id="q3-quiz-area">
+      <div class="question-box">
+        <span id="japanese-hint"></span>
+      </div>
+      <div id="train-track"></div>
+      <div id="words-pool"></div>
+      <div id="message"></div>
+      <div class="explanation-box" id="q3-explanation"></div>
+      <div class="controls">
+        <button class="action check-btn" id="check-btn" onclick="checkAnswer()">できた！</button>
+        <button class="action reset-btn" id="reset-btn" onclick="resetTrack()">やりなおす</button>
+        <button class="action next-btn" id="next-btn" onclick="nextQ3()"><ruby>次<rt>つぎ</rt></ruby>の<ruby>問題<rt>もんだい</rt></ruby>へ ➔</button>
+      </div>
+    </div>
+    <div class="set-complete" id="q3-set-complete">
+      <h2 id="q3-complete-title"></h2>
+      <div class="score-display" id="q3-complete-score"></div>
+      <button class="action" style="background:var(--success)" onclick="startQ3Set()">もう1セットやる？ ➔</button>
+    </div>
+  </div>
+
+  <script>
+    // ══════════════════════════════════════════════
+    //  音声：最良の英語音声を自動選択
+    // ══════════════════════════════════════════════
+    let bestVoice = null;
+    let voiceA = null;
+
+    function initVoice() {
+      const voices = speechSynthesis.getVoices();
+      if (!voices.length) return;
+      const enVoices = voices.filter(v => v.lang === 'en-US' || v.lang === 'en-GB' || v.lang.startsWith('en'));
+      const preferredFemale = ['Samantha', 'Karen', 'Moira', 'Serena', 'Tessa', 'Google US English'];
+      for (const name of preferredFemale) {
+        const v = enVoices.find(v => v.name === name);
+        if (v) { bestVoice = v; break; }
+      }
+      if (!bestVoice) bestVoice = enVoices[0] || null;
+      const preferredMale = ['Alex', 'Daniel', 'Fred', 'Tom', 'Arthur', 'Google UK English Male'];
+      for (const name of preferredMale) {
+        const v = enVoices.find(v => v.name === name);
+        if (v) { voiceA = v; break; }
+      }
+      if (!voiceA) {
+        voiceA = enVoices.find(v => v !== bestVoice) || bestVoice;
+      }
+    }
+
+    if ('speechSynthesis' in window) {
+      speechSynthesis.onvoiceschanged = initVoice;
+      initVoice();
+    }
+
+    // 読み上げ停止用
+    let speakSessionId = 0;
+    let currentUtterance = null;
+
+    function stopSpeaking() {
+      speakSessionId++;
+      // 今の発話を即座にミュート（Safariでcancel()が効かない対策）
+      if (currentUtterance) {
+        currentUtterance.volume = 0;
+        currentUtterance.onend = null;
+      }
+      currentUtterance = null;
+      if ('speechSynthesis' in window) {
+        speechSynthesis.pause();
+        speechSynthesis.cancel();
+      }
+    }
+
+    function speakUtterance(utt, onDone) {
+      currentUtterance = utt;
+      utt.onend = onDone;
+      utt.onerror = onDone;
+      speechSynthesis.speak(utt);
+    }
+
+    // 文を分割して、文と文の間にポーズを入れて読み上げる
+    function speakText(text, useVoice) {
+      if (!('speechSynthesis' in window)) return;
+      stopSpeaking();
+      const mySession = speakSessionId;
+      const cleaned = text.trim();
+      const sentences = cleaned.match(/[^.!?]+[.!?]+/g) || [cleaned];
+      const voice = useVoice || bestVoice;
+      let i = 0;
+      function speakNext() {
+        if (mySession !== speakSessionId) return;
+        if (i >= sentences.length) return;
+        const utt = new SpeechSynthesisUtterance(sentences[i].trim());
+        utt.lang = 'en-US';
+        utt.rate = 0.85;
+        utt.pitch = (voice === voiceA) ? 0.9 : 1.1;
+        if (voice) utt.voice = voice;
+        speakUtterance(utt, () => { i++; setTimeout(speakNext, 500); });
+      }
+      speakNext();
+    }
+
+    function speakDialogue(textA, textB) {
+      if (!('speechSynthesis' in window)) return;
+      stopSpeaking();
+      const mySession = speakSessionId;
+      const cleanA = textA.trim();
+      const cleanB = textB.trim();
+      const sentencesA = cleanA.match(/[^.!?]+[.!?]+/g) || [cleanA];
+      let i = 0;
+      function speakNextA() {
+        if (mySession !== speakSessionId) return;
+        if (i >= sentencesA.length) {
+          setTimeout(() => {
+            if (mySession !== speakSessionId) return;
+            const sentencesB = cleanB.match(/[^.!?]+[.!?]+/g) || [cleanB];
+            let j = 0;
+            function speakNextB() {
+              if (mySession !== speakSessionId) return;
+              if (j >= sentencesB.length) return;
+              const uttB = new SpeechSynthesisUtterance(sentencesB[j].trim());
+              uttB.lang = 'en-US'; uttB.rate = 0.85; uttB.pitch = 1.1;
+              if (bestVoice) uttB.voice = bestVoice;
+              speakUtterance(uttB, () => { j++; setTimeout(speakNextB, 500); });
+            }
+            speakNextB();
+          }, 600);
+          return;
+        }
+        const uttA = new SpeechSynthesisUtterance(sentencesA[i].trim());
+        uttA.lang = 'en-US'; uttA.rate = 0.85; uttA.pitch = 0.9;
+        if (voiceA) uttA.voice = voiceA;
+        speakUtterance(uttA, () => { i++; setTimeout(speakNextA, 500); });
+      }
+      speakNextA();
+    }
+
+    // 会話形式（A: ... B: ...）を判定して適切に読み上げる
+    function speakQ1Sentence(text) {
+      // "A: ..." と " B: ..." の両方があるか（Bの前にスペースがあるパターン）
+      const hasDialogue = /(?:^|\s)A:\s/.test(text) && /\s+B:\s/.test(text);
+      if (hasDialogue) {
+        const parts = text.split(/\s+B:\s*/);
+        const partA = parts[0].replace(/^\s*A:\s*/, '').trim();
+        const partB = parts.slice(1).join(' ').trim();
+        speakDialogue(partA, partB);
+      } else {
+        // 会話形式でなくても先頭の "A: " は除去
+        const cleaned = text.replace(/^\s*A:\s*/, '').trim();
+        speakText(cleaned);
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    //  タブ切り替え
+    // ══════════════════════════════════════════════
+    const tabs = ['vocab', 'q1', 'q2', 'q3'];
+    let currentTab = 'vocab';
+
+    function switchTab(tab) {
+      tabs.forEach(t => {
+        document.getElementById('mode-' + t).style.display = (t === tab) ? 'block' : 'none';
+      });
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', tabs[i] === tab);
+      });
+      currentTab = tab;
+    }
+
+    // ══════════════════════════════════════════════
+    //  回答ログ（localStorage）
+    // ══════════════════════════════════════════════
+    const ANSWER_LOG_KEY = 'eiken5_answer_log';
+
+    function loadAnswerLog() {
+      try { return JSON.parse(localStorage.getItem(ANSWER_LOG_KEY) || '[]'); }
+      catch(e) { return []; }
+    }
+
+    function saveAnswerRecord(record) {
+      const log = loadAnswerLog();
+      log.push(record);
+      if (log.length > 1000) log.splice(0, log.length - 1000);
+      localStorage.setItem(ANSWER_LOG_KEY, JSON.stringify(log));
+    }
+
+    function exportAnswerLog() {
+      const log = loadAnswerLog();
+      if (log.length === 0) {
+        alert('まだ かいとうデータが ないよ！');
+        return;
+      }
+      const data = {
+        exportDate: new Date().toISOString(),
+        totalRecords: log.length,
+        summary: {
+          vocab: { total: log.filter(r=>r.type==='vocab').length, remembered: log.filter(r=>r.type==='vocab'&&r.result==='remembered').length },
+          q1: { total: log.filter(r=>r.type==='q1').length, correct: log.filter(r=>r.type==='q1'&&r.correct).length },
+          q2: { total: log.filter(r=>r.type==='q2').length, correct: log.filter(r=>r.type==='q2'&&r.correct).length },
+          q3: { total: log.filter(r=>r.type==='q3').length, correct: log.filter(r=>r.type==='q3'&&r.correct).length }
+        },
+        records: log
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `eiken5-log-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function resetAnswerLog() {
+      if (confirm('かいとうデータを ぜんぶ けしてもいい？')) {
+        localStorage.removeItem(ANSWER_LOG_KEY);
+        localStorage.removeItem('eiken5_q1_score');
+        localStorage.removeItem('eiken5_q1_total');
+        localStorage.removeItem('eiken5_q1_index');
+        localStorage.removeItem('eiken5_q2_score');
+        localStorage.removeItem('eiken5_q2_total');
+        localStorage.removeItem('eiken5_q2_index');
+        localStorage.removeItem('eiken5_q3_solved');
+        localStorage.removeItem('eiken5_q3_index');
+        q1Score = 0; q1Total = 0; q1Index = 0;
+        q2Score = 0; q2Total = 0; q2Index = 0;
+        solvedCount = 0; q3Index = 0;
+        updateQ1Score(); updateQ2Score();
+        alert('データを けしたよ！');
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    //  単語フラッシュカード
+    // ══════════════════════════════════════════════
+    const vocabList = [
+      // 動詞
+      { english: "go",     japanese: "<ruby>行<rt>い</rt></ruby>く",               example: "I go to school." },
+      { english: "come",   japanese: "<ruby>来<rt>く</rt></ruby>る",               example: "Come here, please." },
+      { english: "play",   japanese: "<ruby>遊<rt>あそ</rt></ruby>ぶ・する",          example: "I play soccer." },
+      { english: "eat",    japanese: "<ruby>食<rt>た</rt></ruby>べる",             example: "I eat lunch." },
+      { english: "drink",  japanese: "<ruby>飲<rt>の</rt></ruby>む",               example: "I drink milk." },
+      { english: "read",   japanese: "<ruby>読<rt>よ</rt></ruby>む",               example: "I read a book." },
+      { english: "write",  japanese: "<ruby>書<rt>か</rt></ruby>く",               example: "I write my name." },
+      { english: "study",  japanese: "<ruby>勉強<rt>べんきょう</rt></ruby>する",           example: "I study English." },
+      { english: "watch",  japanese: "<ruby>見<rt>み</rt></ruby>る（テレビなど）",  example: "I watch TV." },
+      { english: "run",    japanese: "<ruby>走<rt>はし</rt></ruby>る",               example: "I run fast." },
+      { english: "swim",   japanese: "<ruby>泳<rt>およ</rt></ruby>ぐ",               example: "I swim in the pool." },
+      { english: "walk",   japanese: "<ruby>歩<rt>ある</rt></ruby>く",               example: "I walk to school." },
+      { english: "sing",   japanese: "<ruby>歌<rt>うた</rt></ruby>う",               example: "I sing a song." },
+      { english: "dance",  japanese: "<ruby>踊<rt>おど</rt></ruby>る",               example: "I like to dance." },
+      { english: "like",   japanese: "<ruby>好<rt>す</rt></ruby>きだ",             example: "I like dogs." },
+      { english: "have",   japanese: "<ruby>持<rt>も</rt></ruby>っている・いる",    example: "I have a cat." },
+      { english: "make",   japanese: "<ruby>作<rt>つく</rt></ruby>る",               example: "I make lunch." },
+      { english: "help",   japanese: "<ruby>手伝<rt>てつだ</rt></ruby>う",             example: "I help my mother." },
+      { english: "see",    japanese: "<ruby>見<rt>み</rt></ruby>える・<ruby>会<rt>あ</rt></ruby>う",        example: "I see a bird." },
+      { english: "know",   japanese: "<ruby>知<rt>し</rt></ruby>っている",          example: "I know his name." },
+      { english: "live",   japanese: "<ruby>住<rt>す</rt></ruby>む",               example: "I live in Tokyo." },
+      { english: "sleep",  japanese: "<ruby>眠<rt>ねむ</rt></ruby>る",               example: "I sleep at ten." },
+      { english: "get",    japanese: "もらう・<ruby>起<rt>お</rt></ruby>きる",      example: "I get up at seven." },
+      { english: "give",   japanese: "あげる",             example: "I give a book to her." },
+      { english: "speak",  japanese: "<ruby>話<rt>はな</rt></ruby>す",               example: "I speak English." },
+      { english: "listen", japanese: "<ruby>聴<rt>き</rt></ruby>く",               example: "I listen to music." },
+      { english: "want",   japanese: "ほしい",             example: "I want a new pen." },
+      { english: "use",    japanese: "<ruby>使<rt>つか</rt></ruby>う",               example: "I use a computer." },
+      { english: "open",   japanese: "<ruby>開<rt>あ</rt></ruby>ける",             example: "Open the door, please." },
+      { english: "close",  japanese: "<ruby>閉<rt>し</rt></ruby>める",             example: "Close the window." },
+      { english: "cook",   japanese: "<ruby>料理<rt>りょうり</rt></ruby>する",           example: "My mother cooks dinner." },
+      { english: "buy",    japanese: "<ruby>買<rt>か</rt></ruby>う",               example: "I buy a book." },
+      { english: "sit",    japanese: "<ruby>座<rt>すわ</rt></ruby>る",               example: "Sit down, please." },
+      { english: "stand",  japanese: "<ruby>立<rt>た</rt></ruby>つ",               example: "Stand up, please." },
+      { english: "look",   japanese: "<ruby>見<rt>み</rt></ruby>る",               example: "Look at that bird." },
+      // 名詞
+      { english: "school",   japanese: "<ruby>学校<rt>がっこう</rt></ruby>",             example: "I go to school." },
+      { english: "teacher",  japanese: "<ruby>先生<rt>せんせい</rt></ruby>",             example: "My teacher is kind." },
+      { english: "friend",   japanese: "<ruby>友達<rt>ともだち</rt></ruby>",             example: "She is my friend." },
+      { english: "mother",   japanese: "お<ruby>母<rt>かあ</rt></ruby>さん",          example: "My mother is a nurse." },
+      { english: "father",   japanese: "お<ruby>父<rt>とう</rt></ruby>さん",          example: "My father works here." },
+      { english: "brother",  japanese: "<ruby>兄<rt>あに</rt></ruby>・<ruby>弟<rt>おとうと</rt></ruby>",           example: "I have a brother." },
+      { english: "sister",   japanese: "<ruby>姉<rt>あね</rt></ruby>・<ruby>妹<rt>いもうと</rt></ruby>",           example: "My sister is tall." },
+      { english: "book",     japanese: "<ruby>本<rt>ほん</rt></ruby>",               example: "I read a book." },
+      { english: "pen",      japanese: "ペン",             example: "Do you have a pen?" },
+      { english: "pencil",   japanese: "<ruby>鉛筆<rt>えんぴつ</rt></ruby>",             example: "I have a pencil." },
+      { english: "bag",      japanese: "バッグ・かばん",    example: "My bag is red." },
+      { english: "ball",     japanese: "ボール",           example: "I have a big ball." },
+      { english: "desk",     japanese: "<ruby>机<rt>つくえ</rt></ruby>",               example: "The pen is on the desk." },
+      { english: "dog",      japanese: "<ruby>犬<rt>いぬ</rt></ruby>",               example: "I have a dog." },
+      { english: "cat",      japanese: "<ruby>猫<rt>ねこ</rt></ruby>",               example: "She has a cat." },
+      { english: "bird",     japanese: "<ruby>鳥<rt>とり</rt></ruby>",               example: "I see a bird." },
+      { english: "fish",     japanese: "<ruby>魚<rt>さかな</rt></ruby>",               example: "I like fish." },
+      { english: "apple",    japanese: "りんご",           example: "I eat an apple." },
+      { english: "orange",   japanese: "オレンジ",          example: "I like oranges." },
+      { english: "rice",     japanese: "ご<ruby>飯<rt>はん</rt></ruby>・<ruby>米<rt>こめ</rt></ruby>",          example: "I eat rice every day." },
+      { english: "bread",    japanese: "パン",             example: "I eat bread for breakfast." },
+      { english: "water",    japanese: "<ruby>水<rt>みず</rt></ruby>",               example: "I drink water." },
+      { english: "juice",    japanese: "ジュース",          example: "I like apple juice." },
+      { english: "milk",     japanese: "<ruby>牛乳<rt>ぎゅうにゅう</rt></ruby>・ミルク",      example: "I drink milk." },
+      { english: "house",    japanese: "<ruby>家<rt>いえ</rt></ruby>",               example: "My house is big." },
+      { english: "room",     japanese: "<ruby>部屋<rt>へや</rt></ruby>",             example: "My room is small." },
+      { english: "park",     japanese: "<ruby>公園<rt>こうえん</rt></ruby>",             example: "I play in the park." },
+      { english: "library",  japanese: "<ruby>図書館<rt>としょかん</rt></ruby>",           example: "I read at the library." },
+      { english: "city",     japanese: "<ruby>市<rt>し</rt></ruby>・<ruby>都市<rt>とし</rt></ruby>",          example: "I live in a big city." },
+      { english: "music",    japanese: "<ruby>音楽<rt>おんがく</rt></ruby>",             example: "I like music." },
+      { english: "sport",    japanese: "スポーツ",          example: "I like sports." },
+      { english: "morning",  japanese: "<ruby>朝<rt>あさ</rt></ruby>・<ruby>午前<rt>ごぜん</rt></ruby>",          example: "I study in the morning." },
+      { english: "evening",  japanese: "<ruby>夕方<rt>ゆうがた</rt></ruby>",             example: "I walk in the evening." },
+      { english: "day",      japanese: "<ruby>日<rt>ひ</rt></ruby>・<ruby>昼<rt>ひる</rt></ruby>",           example: "What day is it today?" },
+      { english: "week",     japanese: "<ruby>週<rt>しゅう</rt></ruby>",               example: "I study three days a week." },
+      { english: "year",     japanese: "<ruby>年<rt>ねん</rt></ruby>",               example: "I am eight years old." },
+      { english: "color",    japanese: "<ruby>色<rt>いろ</rt></ruby>",               example: "What is your favorite color?" },
+      { english: "food",     japanese: "<ruby>食<rt>た</rt></ruby>べ<ruby>物<rt>もの</rt></ruby>",           example: "What is your favorite food?" },
+      { english: "name",     japanese: "<ruby>名前<rt>なまえ</rt></ruby>",             example: "My name is Otoha." },
+      { english: "soccer",   japanese: "サッカー",          example: "I play soccer." },
+      { english: "tennis",   japanese: "テニス",           example: "I play tennis." },
+      { english: "piano",    japanese: "ピアノ",           example: "I play the piano." },
+      // 形容詞
+      { english: "big",        japanese: "<ruby>大<rt>おお</rt></ruby>きい",           example: "My dog is big." },
+      { english: "small",      japanese: "<ruby>小<rt>ちい</rt></ruby>さい",           example: "I have a small cat." },
+      { english: "tall",       japanese: "<ruby>背<rt>せ</rt></ruby>が<ruby>高<rt>たか</rt></ruby>い",         example: "He is tall." },
+      { english: "young",      japanese: "<ruby>若<rt>わか</rt></ruby>い",             example: "She is young." },
+      { english: "old",        japanese: "<ruby>古<rt>ふる</rt></ruby>い・<ruby>年<rt>とし</rt></ruby>をとった",  example: "This is an old book." },
+      { english: "new",        japanese: "<ruby>新<rt>あたら</rt></ruby>しい",           example: "I have a new bag." },
+      { english: "good",       japanese: "<ruby>良<rt>よ</rt></ruby>い・<ruby>上手<rt>じょうず</rt></ruby>な",      example: "She is good at math." },
+      { english: "happy",      japanese: "うれしい・<ruby>幸<rt>しあわ</rt></ruby>せな",  example: "I am happy." },
+      { english: "hot",        japanese: "<ruby>暑<rt>あつ</rt></ruby>い・<ruby>熱<rt>あつ</rt></ruby>い",        example: "It is hot today." },
+      { english: "cold",       japanese: "<ruby>寒<rt>さむ</rt></ruby>い・<ruby>冷<rt>つめ</rt></ruby>たい",      example: "It is cold today." },
+      { english: "sunny",      japanese: "<ruby>晴<rt>は</rt></ruby>れの",           example: "It is a sunny day." },
+      { english: "rainy",      japanese: "<ruby>雨<rt>あめ</rt></ruby>の",             example: "It is a rainy day." },
+      { english: "fast",       japanese: "<ruby>速<rt>はや</rt></ruby>い",             example: "He runs fast." },
+      { english: "easy",       japanese: "<ruby>簡単<rt>かんたん</rt></ruby>な",           example: "This question is easy." },
+      { english: "cute",       japanese: "かわいい",         example: "My dog is cute." },
+      { english: "kind",       japanese: "<ruby>親切<rt>しんせつ</rt></ruby>な",           example: "My teacher is kind." },
+      { english: "beautiful",  japanese: "<ruby>美<rt>うつく</rt></ruby>しい",           example: "The flower is beautiful." },
+      { english: "heavy",      japanese: "<ruby>重<rt>おも</rt></ruby>い",             example: "This bag is heavy." },
+      { english: "large",      japanese: "<ruby>大<rt>おお</rt></ruby>きい",           example: "I want a large pizza." },
+      { english: "fine",       japanese: "<ruby>元気<rt>げんき</rt></ruby>な・いいてんき",  example: "I'm fine, thank you." },
+      { english: "ready",      japanese: "じゅんびができた",  example: "Dinner is ready." },
+      // 曜日
+      { english: "Sunday",    japanese: "<ruby>日曜日<rt>にちようび</rt></ruby>",         example: "I play soccer on Sunday." },
+      { english: "Monday",    japanese: "<ruby>月曜日<rt>げつようび</rt></ruby>",         example: "I go to school on Monday." },
+      { english: "Tuesday",   japanese: "<ruby>火曜日<rt>かようび</rt></ruby>",          example: "I have English on Tuesday." },
+      { english: "Wednesday", japanese: "<ruby>水曜日<rt>すいようび</rt></ruby>",         example: "I swim on Wednesday." },
+      { english: "Thursday",  japanese: "<ruby>木曜日<rt>もくようび</rt></ruby>",         example: "I play the piano on Thursday." },
+      { english: "Friday",    japanese: "<ruby>金曜日<rt>きんようび</rt></ruby>",         example: "I like Friday." },
+      { english: "Saturday",  japanese: "<ruby>土曜日<rt>どようび</rt></ruby>",          example: "I play in the park on Saturday." },
+      // 音羽の苦手な名詞
+      { english: "test",      japanese: "テスト",           example: "I have a test tomorrow." },
+      { english: "bike",      japanese: "<ruby>自転車<rt>じてんしゃ</rt></ruby>",           example: "I ride my bike to school." },
+      { english: "basketball", japanese: "バスケットボール",  example: "I play basketball." },
+      { english: "month",     japanese: "<ruby>月<rt>つき</rt></ruby>・〜<ruby>月<rt>がつ</rt></ruby>",        example: "What month is it?" },
+      { english: "animal",    japanese: "どうぶつ",         example: "I like animals." },
+      { english: "song",      japanese: "うた",             example: "I sing a song." },
+      { english: "umbrella",  japanese: "かさ",             example: "I have an umbrella." },
+      { english: "soup",      japanese: "スープ",           example: "I eat soup for lunch." },
+      { english: "girl",      japanese: "<ruby>女<rt>おんな</rt></ruby>の<ruby>子<rt>こ</rt></ruby>",          example: "That girl is my friend." },
+      { english: "notebook",  japanese: "ノート",           example: "I write in my notebook." },
+      { english: "history",   japanese: "<ruby>歴史<rt>れきし</rt></ruby>",             example: "I study history." },
+      { english: "kitchen",   japanese: "<ruby>台所<rt>だいどころ</rt></ruby>・キッチン",    example: "My mother is in the kitchen." },
+      { english: "driver",    japanese: "うんてんしゅ",      example: "My uncle is a bus driver." },
+      { english: "bus",       japanese: "バス",             example: "I go to school by bus." },
+      { english: "chocolate", japanese: "チョコレート",      example: "I like chocolate." },
+      { english: "window",    japanese: "<ruby>窓<rt>まど</rt></ruby>",               example: "Open the window, please." },
+      { english: "aunt",      japanese: "おばさん",         example: "My aunt lives in Osaka." },
+      // 音羽の苦手な動詞
+      { english: "jump",      japanese: "ジャンプする・とぶ",  example: "I can jump high." },
+      { english: "need",      japanese: "ひつようとする",    example: "I need a pencil." },
+      { english: "welcome",   japanese: "ようこそ",         example: "Welcome to our school." },
+      // 副詞・その他
+      { english: "very",   japanese: "とても",       example: "I am very happy." },
+      { english: "also",   japanese: "〜も・また",   example: "I also like cats." },
+      { english: "here",   japanese: "ここ・ここに",  example: "Come here, please." },
+      { english: "today",  japanese: "<ruby>今日<rt>きょう</rt></ruby>",          example: "I study English today." },
+      { english: "now",    japanese: "<ruby>今<rt>いま</rt></ruby>",            example: "I am studying now." },
+      { english: "every",  japanese: "<ruby>毎<rt>まい</rt></ruby>〜",          example: "I study every day." },
+      { english: "many",   japanese: "たくさんの",   example: "I have many friends." },
+      { english: "much",   japanese: "たくさん（かぞえられないもの）", example: "How much is this?" },
+      { english: "about",  japanese: "〜について",   example: "I talk about my family." },
+      { english: "our",    japanese: "<ruby>私<rt>わたし</rt></ruby>たちの",      example: "This is our school." },
+      { english: "when",   japanese: "いつ",         example: "When is your birthday?" },
+      { english: "where",  japanese: "どこ",         example: "Where is the station?" },
+      { english: "why",    japanese: "なぜ・どうして",  example: "Why do you like it?" },
+      { english: "how",    japanese: "どうやって・どのくらい", example: "How are you?" },
+    ];
+
+    // ─── localStorage（単語学習） ───
+    const STORAGE_KEY = 'eiken5_vocab_learned';
+
+    function loadLearnedWords() {
+      try { return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')); }
+      catch(e) { return new Set(); }
+    }
+
+    function saveLearnedWord(english) {
+      const learned = loadLearnedWords();
+      learned.add(english);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...learned]));
+    }
+
+    function resetLearnedWords() {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+
+    // ─── State ───
+    const SESSION_SIZE = 10;
+    let vocabMode = 'normal';
+    let vocabQueue = [];
+    let vocabRetry = [];
+    let vocabCurrentIndex = 0;
+    let vocabSessionOk = 0;
+    let vocabRevealed = false;
+
+    function shuffleArray(arr) {
+      return [...arr].sort(() => Math.random() - 0.5);
+    }
+
+    function updateGlobalProgress() {
+      const learned = loadLearnedWords();
+      const total = vocabList.length;
+      const done = [...learned].filter(w => vocabList.some(v => v.english === w)).length;
+      document.getElementById('vocab-global-text').innerHTML = `<ruby>全体<rt>ぜんたい</rt></ruby>：${total}<ruby>語中<rt>ごちゅう</rt></ruby> ${done}<ruby>語<rt>ご</rt></ruby>おぼえた！`;
+      document.getElementById('vocab-global-fill').style.width = (total > 0 ? (done / total * 100) : 0) + '%';
+    }
+
+    function setVocabMode(mode) {
+      vocabMode = mode;
+      document.getElementById('btn-mode-normal').classList.toggle('active', mode === 'normal');
+      document.getElementById('btn-mode-review').classList.toggle('active', mode === 'review');
+      initVocab();
+    }
+
+    function initVocab() {
+      const learned = loadLearnedWords();
+      let pool;
+      if (vocabMode === 'review') {
+        pool = vocabList.filter(v => learned.has(v.english));
+        if (pool.length === 0) {
+          updateGlobalProgress();
+          showSessionEnd('まだおぼえた<ruby>単語<rt>たんご</rt></ruby>がないよ！', '<ruby>先<rt>さき</rt></ruby>に「まだおぼえてない<ruby>単語<rt>たんご</rt></ruby>」で<ruby>練習<rt>れんしゅう</rt></ruby>しよう！', null);
+          return;
+        }
+      } else {
+        pool = vocabList.filter(v => !learned.has(v.english));
+        if (pool.length === 0) {
+          updateGlobalProgress();
+          showSessionEnd('🎉 <ruby>全部<rt>ぜんぶ</rt></ruby>おぼえた！すごい！', '<ruby>全<rt>すべ</rt></ruby>ての<ruby>単語<rt>たんご</rt></ruby>をマスターしたよ！おめでとう！', null);
+          return;
+        }
+      }
+      vocabQueue = shuffleArray(pool).slice(0, SESSION_SIZE);
+      vocabRetry = [];
+      vocabCurrentIndex = 0;
+      vocabSessionOk = 0;
+      vocabRevealed = false;
+      document.getElementById('vocab-session-end').style.display = 'none';
+      document.getElementById('vocab-card-area').style.display = 'block';
+      updateGlobalProgress();
+      showVocabCard();
+    }
+
+    function showVocabCard() {
+      const allDone = vocabCurrentIndex >= vocabQueue.length && vocabRetry.length === 0;
+      if (allDone) {
+        const learned = loadLearnedWords();
+        const remaining = vocabList.filter(v => !learned.has(v.english)).length;
+        if (vocabMode === 'normal' && remaining > 0) {
+          showSessionEnd('✨ セッションかんりょう！', `このセットを<ruby>練習<rt>れんしゅう</rt></ruby>したよ！まだ${remaining}<ruby>語<rt>ご</rt></ruby><ruby>残<rt>のこ</rt></ruby>ってるよ。`, '<ruby>次<rt>つぎ</rt></ruby>の10<ruby>語<rt>ご</rt></ruby>へ ➔');
+        } else if (vocabMode === 'normal') {
+          showSessionEnd('🎉 <ruby>全部<rt>ぜんぶ</rt></ruby>おぼえた！すごい！', '<ruby>全<rt>すべ</rt></ruby>ての<ruby>単語<rt>たんご</rt></ruby>をマスターしたよ！おめでとう！', null);
+        } else {
+          showSessionEnd('✨ <ruby>復習<rt>ふくしゅう</rt></ruby>かんりょう！', 'よくがんばったね！また<ruby>復習<rt>ふくしゅう</rt></ruby>しよう！', 'もう<ruby>一度<rt>いちど</rt></ruby><ruby>復習<rt>ふくしゅう</rt></ruby>する ➔');
+        }
+        updateGlobalProgress();
+        return;
+      }
+      if (vocabCurrentIndex >= vocabQueue.length) {
+        vocabQueue = shuffleArray(vocabRetry);
+        vocabRetry = [];
+        vocabCurrentIndex = 0;
+      }
+      const card = vocabQueue[vocabCurrentIndex];
+      vocabRevealed = false;
+      document.getElementById('vocab-english').innerText = card.english;
+      document.getElementById('vocab-japanese').style.display = 'none';
+      document.getElementById('vocab-example').style.display = 'none';
+      document.getElementById('btn-reveal').style.display = 'inline-block';
+      document.getElementById('btn-ok').style.display = 'none';
+      document.getElementById('btn-retry').style.display = 'none';
+      document.getElementById('btn-speak').style.display = 'none';
+      document.getElementById('vocab-done-msg').innerText = '';
+      updateVocabProgress(vocabSessionOk, vocabQueue.length);
+    }
+
+    function updateVocabProgress(done, total) {
+      document.getElementById('vocab-progress-text').innerText = `このセット：${done} / ${total} おぼえた`;
+      document.getElementById('vocab-progress-fill').style.width = (total > 0 ? (done / total * 100) : 0) + '%';
+    }
+
+    function showSessionEnd(title, msg, btnLabel) {
+      document.getElementById('vocab-card-area').style.display = 'none';
+      document.getElementById('vocab-session-end').style.display = 'block';
+      document.getElementById('vocab-session-end-title').innerHTML = title;
+      document.getElementById('vocab-session-end-msg').innerHTML = msg;
+      const btn = document.getElementById('btn-next-session');
+      if (btnLabel) {
+        btn.style.display = 'inline-block';
+        btn.innerHTML = btnLabel;
+      } else {
+        btn.style.display = 'none';
+      }
+    }
+
+    function startNextSession() {
+      initVocab();
+    }
+
+    function revealVocab() {
+      const card = vocabQueue[vocabCurrentIndex];
+      document.getElementById('vocab-japanese').innerHTML = card.japanese;
+      document.getElementById('vocab-japanese').style.display = 'block';
+      document.getElementById('vocab-example').innerText = '例: ' + card.example;
+      document.getElementById('vocab-example').style.display = 'block';
+      document.getElementById('btn-reveal').style.display = 'none';
+      document.getElementById('btn-ok').style.display = 'inline-block';
+      document.getElementById('btn-retry').style.display = 'inline-block';
+      document.getElementById('btn-speak').style.display = 'inline-block';
+      vocabRevealed = true;
+      speakText(card.english);
+    }
+
+    function speakVocab() {
+      const card = vocabQueue[vocabCurrentIndex];
+      if (card) speakText(card.english);
+    }
+
+    function vocabResult(ok) {
+      const card = vocabQueue[vocabCurrentIndex];
+      saveAnswerRecord({
+        type: 'vocab',
+        english: card.english,
+        japanese: card.japanese.replace(/<rt>[^<]*<\/rt>/g, '').replace(/<[^>]+>/g, ''),
+        result: ok ? 'remembered' : 'retry',
+        timestamp: new Date().toISOString()
+      });
+      if (ok) {
+        vocabSessionOk++;
+        saveLearnedWord(card.english);
+      } else {
+        vocabRetry.push(card);
+      }
+      vocabCurrentIndex++;
+      showVocabCard();
+    }
+
+    function resetVocabProgress() {
+      if (confirm('おぼえた たんごの きろくを ぜんぶ リセットしてもいい？')) {
+        resetLearnedWords();
+        vocabMode = 'normal';
+        document.getElementById('btn-mode-normal').classList.add('active');
+        document.getElementById('btn-mode-review').classList.remove('active');
+        initVocab();
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    //  大問1：語句空所補充
+    // ══════════════════════════════════════════════
+    const questionsQ1 = [
+      // ── 音羽の苦手単語を使った過去問ベース ──
+      { sentence: "My birthday ( ) is next Saturday. Can you come?", hint: "<ruby>私<rt>わたし</rt></ruby>のたんじょう<ruby>日<rt>び</rt></ruby>パーティーは<ruby>次<rt>つぎ</rt></ruby>の<ruby>土曜日<rt>どようび</rt></ruby>です。<ruby>来<rt>こ</rt></ruby>られる？", choices: ["test", "box", "party", "bike"], choicesMeaning: {"test":"テスト","box":"はこ","party":"パーティー","bike":"じてんしゃ"}, answer: "party", explanation: "party（パーティー）= おいわいの会。birthday party で「たんじょう日パーティー」だよ。" },
+      { sentence: "Mike likes basketball. He can play it in the ( ).", hint: "マイクはバスケットボールが<ruby>好<rt>す</rt></ruby>き。<ruby>公園<rt>こうえん</rt></ruby>でできるよ。", choices: ["kitchen", "park", "notebook", "bus"], choicesMeaning: {"kitchen":"だいどころ","park":"こうえん","notebook":"ノート","bus":"バス"}, answer: "park", explanation: "park（パーク）= こうえん。バスケットボールはこうえんでやるよね！" },
+      { sentence: "A: What ( ) is it today? B: It's Monday.", hint: "A: <ruby>今日<rt>きょう</rt></ruby>は<ruby>何<rt>なん</rt></ruby>よう<ruby>日<rt>び</rt></ruby>？ B: <ruby>月曜日<rt>げつようび</rt></ruby>だよ。", choices: ["color", "day", "month", "animal"], choicesMeaning: {"color":"いろ","day":"ひ・ようび","month":"つき","animal":"どうぶつ"}, answer: "day", explanation: "day（デイ）= 日。What day is it? で「何ようびですか？」だよ。" },
+      { sentence: "The soup is ready, Paul. Let's ( ) lunch.", hint: "スープができたよ、ポール。ランチを<ruby>食<rt>た</rt></ruby>べよう。", choices: ["eat", "read", "know", "need"], choicesMeaning: {"eat":"たべる","read":"よむ","know":"しっている","need":"ひつよう"}, answer: "eat", explanation: "eat（イート）= たべる。ランチをたべよう！だね。" },
+      { sentence: "That bag is too ( ) for me. I can't carry it.", hint: "あのバッグは<ruby>私<rt>わたし</rt></ruby>には<ruby>重<rt>おも</rt></ruby>すぎる。<ruby>運<rt>はこ</rt></ruby>べないよ。", choices: ["heavy", "large", "tall", "fine"], choicesMeaning: {"heavy":"おもい","large":"おおきい","tall":"たかい・せがたかい","fine":"げんき・よい"}, answer: "heavy", explanation: "heavy（ヘビー）= おもい。too heavy = おもすぎる。large は「おおきい」だよ。" },
+      { sentence: "It's raining. Do you have an ( )?", hint: "<ruby>雨<rt>あめ</rt></ruby>がふっているよ。<ruby>傘<rt>かさ</rt></ruby>を<ruby>持<rt>も</rt></ruby>ってる？", choices: ["umbrella", "animal", "orange", "notebook"], choicesMeaning: {"umbrella":"かさ","animal":"どうぶつ","orange":"オレンジ","notebook":"ノート"}, answer: "umbrella", explanation: "umbrella（アンブレラ）= かさ。あめの日にはかさがひつようだね！" },
+      { sentence: "A: What ( ) do you like? B: I like green.", hint: "A: <ruby>何<rt>なん</rt></ruby><ruby>色<rt>いろ</rt></ruby>が<ruby>好<rt>す</rt></ruby>き？ B: みどりが<ruby>好<rt>す</rt></ruby>き。", choices: ["year", "song", "color", "movie"], choicesMeaning: {"year":"とし・ねん","song":"うた","color":"いろ","movie":"えいが"}, answer: "color", explanation: "color（カラー）= いろ。green = みどりいろ だから、いろをきいてるね。" },
+      { sentence: "I like to ( ) orange juice in the morning.", hint: "<ruby>私<rt>わたし</rt></ruby>は<ruby>朝<rt>あさ</rt></ruby>、オレンジジュースを<ruby>飲<rt>の</rt></ruby>むのが<ruby>好<rt>す</rt></ruby>き。", choices: ["drink", "jump", "dance", "read"], choicesMeaning: {"drink":"のむ","jump":"とぶ","dance":"おどる","read":"よむ"}, answer: "drink", explanation: "drink（ドリンク）= のむ。ジュースは drink だね！" },
+      { sentence: "A: ( ) is your English teacher? B: Ms. Brown.", hint: "A: あなたの<ruby>英語<rt>えいご</rt></ruby>の<ruby>先生<rt>せんせい</rt></ruby>は<ruby>誰<rt>だれ</rt></ruby>？ B: ブラウン<ruby>先生<rt>せんせい</rt></ruby>だよ。", choices: ["When", "Where", "Who", "How"], choicesMeaning: {"When":"いつ","Where":"どこ","Who":"だれ","How":"どうやって"}, answer: "Who", explanation: "Who（フー）= だれ。ひとの名まえでこたえてるから Who だね。" },
+      { sentence: "I ( ) a new song every week.", hint: "<ruby>私<rt>わたし</rt></ruby>は<ruby>毎週<rt>まいしゅう</rt></ruby><ruby>新<rt>あたら</rt></ruby>しいうたをおぼえます。", choices: ["know", "need", "read", "learn"], choicesMeaning: {"know":"しっている","need":"ひつよう","read":"よむ","learn":"おぼえる・まなぶ"}, answer: "learn", explanation: "learn（ラーン）= おぼえる・まなぶ。song = うた だよ。" },
+      { sentence: "Roger ( ) to bed at 10:00 every night.", hint: "ロジャーは<ruby>毎晩<rt>まいばん</rt></ruby>10<ruby>時<rt>じ</rt></ruby>にねます。", choices: ["goes", "go", "going", "went"], choicesMeaning: {"goes":"いく(s)","go":"いく","going":"いっている","went":"いった"}, answer: "goes", explanation: "Roger は he だから goes だよ。I/you のときは go、he/she のときは goes！" },
+      { sentence: "Welcome ( ) Cate's Café. Can I help you?", hint: "ケイトのカフェへようこそ。おてつだいしましょうか？", choices: ["to", "at", "in", "on"], choicesMeaning: {"to":"～へ","at":"～で","in":"～の中","on":"～の上"}, answer: "to", explanation: "Welcome to ～ で「～へようこそ」。to はセットでおぼえよう！" },
+      { sentence: "A: ( ) do you live? B: I live in Tokyo.", hint: "A: どこに<ruby>住<rt>す</rt></ruby>んでいるの？ B: <ruby>東京<rt>とうきょう</rt></ruby>に<ruby>住<rt>す</rt></ruby>んでいるよ。", choices: ["Where", "When", "Why", "How"], choicesMeaning: {"Where":"どこ","When":"いつ","Why":"なぜ","How":"どうやって"}, answer: "Where", explanation: "Where（ウェア）= どこ。ばしょをきくときは Where だよ。" },
+      { sentence: "That ( ) can jump very high.", hint: "あのどうぶつはとても<ruby>高<rt>たか</rt></ruby>くジャンプできるよ。", choices: ["animal", "bus", "kitchen", "notebook"], choicesMeaning: {"animal":"どうぶつ","bus":"バス","kitchen":"だいどころ","notebook":"ノート"}, answer: "animal", explanation: "animal（アニマル）= どうぶつ。jump = ジャンプする だよ。" },
+      { sentence: "We ( ) English every day at school.", hint: "<ruby>私<rt>わたし</rt></ruby>たちは<ruby>学校<rt>がっこう</rt></ruby>で<ruby>毎日<rt>まいにち</rt></ruby><ruby>英語<rt>えいご</rt></ruby>をよみます。", choices: ["read", "drink", "jump", "open"], choicesMeaning: {"read":"よむ","drink":"のむ","jump":"とぶ","open":"あける"}, answer: "read", explanation: "read（リード）= よむ。えいごの本をよむときに使うよ。" },
+      { sentence: "( ) do you go to school? B: By bus.", hint: "どうやって<ruby>学校<rt>がっこう</rt></ruby>に<ruby>行<rt>い</rt></ruby>くの？ B: バスで<ruby>行<rt>い</rt></ruby>くよ。", choices: ["How", "What", "Who", "Where"], choicesMeaning: {"How":"どうやって","What":"なに","Who":"だれ","Where":"どこ"}, answer: "How", explanation: "How（ハウ）= どうやって。「バスで」とこたえてるから How だね。" },
+      { sentence: "My aunt is a bus ( ).", hint: "<ruby>私<rt>わたし</rt></ruby>のおばさんはバスのうんてんしゅです。", choices: ["driver", "girl", "dance", "song"], choicesMeaning: {"driver":"うんてんしゅ","girl":"おんなのこ","dance":"ダンス","song":"うた"}, answer: "driver", explanation: "driver（ドライバー）= うんてんしゅ。bus driver で「バスのうんてんしゅ」だよ。" },
+      { sentence: "Please ( ) the window. It's hot.", hint: "<ruby>窓<rt>まど</rt></ruby>を<ruby>開<rt>あ</rt></ruby>けてください。あついです。", choices: ["open", "drink", "jump", "read"], choicesMeaning: {"open":"あける","drink":"のむ","jump":"とぶ","read":"よむ"}, answer: "open", explanation: "open（オープン）= あける。あついからまどをあけてね！" },
+      { sentence: "I ( ) some help with my homework.", hint: "しゅくだいにおてつだいがいるの。", choices: ["need", "know", "drink", "jump"], choicesMeaning: {"need":"ひつよう","know":"しっている","drink":"のむ","jump":"とぶ"}, answer: "need", explanation: "need（ニード）= ひつようとする。おてつだいがいるの = I need help だよ。" },
+      { sentence: "A: Do you ( ) this word? B: Yes, it means 'dog.'", hint: "A: このたんごわかる？ B: うん、「いぬ」っていみだよ。", choices: ["know", "need", "drink", "open"], choicesMeaning: {"know":"しっている","need":"ひつよう","drink":"のむ","open":"あける"}, answer: "know", explanation: "know（ノウ）= しっている・わかる。Do you know? = わかる？" },
+      // ── 過去問から：単語力＋文法 ──
+      { sentence: "Stan is a tennis player. He wants a nice ( ) for his birthday.", hint: "スタンはテニスせんしゅ。たんじょう<ruby>日<rt>び</rt></ruby>にすてきなものがほしいな。", choices: ["summer", "school", "racket", "mouth"], choicesMeaning: {"summer":"なつ","school":"がっこう","racket":"ラケット","mouth":"くち"}, answer: "racket", explanation: "racket（ラケット）= テニスのラケット。テニスせんしゅだからラケットがほしいんだね！" },
+      { sentence: "Julie likes art. She often goes to a ( ) with her mother.", hint: "ジュリーはびじゅつが<ruby>好<rt>す</rt></ruby>き。おかあさんとよく<ruby>行<rt>い</rt></ruby>くよ。", choices: ["fish", "museum", "fruit", "pencil"], choicesMeaning: {"fish":"さかな","museum":"びじゅつかん","fruit":"くだもの","pencil":"えんぴつ"}, answer: "museum", explanation: "museum（ミュージアム）= びじゅつかん。art が好きだからびじゅつかんに行くよ。" },
+      { sentence: "Tom likes animals and often goes to the ( ).", hint: "トムはどうぶつが<ruby>好<rt>す</rt></ruby>き。よくそこに<ruby>行<rt>い</rt></ruby>くよ。", choices: ["restaurant", "zoo", "bus stop", "bathroom"], choicesMeaning: {"restaurant":"レストラン","zoo":"どうぶつえん","bus stop":"バスてい","bathroom":"おふろ・トイレ"}, answer: "zoo", explanation: "zoo（ズー）= どうぶつえん。どうぶつがすきだからどうぶつえんだね！" },
+      { sentence: "Judy is in the art club. She ( ) pictures every day.", hint: "ジュディはびじゅつクラブ。<ruby>毎日<rt>まいにち</rt></ruby>えをかくよ。", choices: ["paints", "sings", "cooks", "helps"], choicesMeaning: {"paints":"えをかく","sings":"うたう","cooks":"りょうりする","helps":"てつだう"}, answer: "paints", explanation: "paint（ペイント）= えをかく。she だから paints と s がつくよ。" },
+      { sentence: "Carl has many ( ) hats. It's his favorite color.", hint: "カールはこの<ruby>色<rt>いろ</rt></ruby>のぼうしをたくさん<ruby>持<rt>も</rt></ruby>っている。<ruby>好<rt>す</rt></ruby>きな<ruby>色<rt>いろ</rt></ruby>なんだ。", choices: ["pink", "long", "sweet", "busy"], choicesMeaning: {"pink":"ピンク","long":"ながい","sweet":"あまい","busy":"いそがしい"}, answer: "pink", explanation: "pink（ピンク）= ピンクいろ。color（いろ）のなまえがはいるよ。long は「ながい」だよ。" },
+      { sentence: "Karen is ( ) her homework for math class.", hint: "カレンは<ruby>算数<rt>さんすう</rt></ruby>のしゅくだいをやっているよ。", choices: ["swimming", "asking", "thinking", "doing"], choicesMeaning: {"swimming":"およいでいる","asking":"きいている","thinking":"かんがえている","doing":"やっている"}, answer: "doing", explanation: "doing（ドゥーイング）= やっている。do homework = しゅくだいをやる。" },
+      { sentence: "I usually read magazines ( ) home.", hint: "<ruby>私<rt>わたし</rt></ruby>はいつも<ruby>家<rt>いえ</rt></ruby>でざっしをよむよ。", choices: ["of", "on", "with", "at"], choicesMeaning: {"of":"～の","on":"～の上","with":"～といっしょに","at":"～で"}, answer: "at", explanation: "at home で「いえで」。home のまえは at をつかうよ！" },
+      { sentence: "A: How ( ) is your soccer practice? B: It's one hour.", hint: "A: サッカーのれんしゅうはどのくらい？ B: 1<ruby>時間<rt>じかん</rt></ruby>だよ。", choices: ["cold", "big", "long", "fine"], choicesMeaning: {"cold":"さむい・つめたい","big":"おおきい","long":"ながい","fine":"げんき・よい"}, answer: "long", explanation: "How long = どのくらい（じかん）。1 hour（1じかん）とこたえてるから long だね。" },
+      { sentence: "Samantha always drinks a cup ( ) coffee with breakfast.", hint: "サマンサはいつも<ruby>朝<rt>あさ</rt></ruby>ごはんにコーヒーを<ruby>飲<rt>の</rt></ruby>むよ。", choices: ["as", "by", "of", "in"], choicesMeaning: {"as":"～として","by":"～のそば・～で","of":"～の","in":"～の中"}, answer: "of", explanation: "a cup of ～ で「1ぱいの～」。a cup of coffee = コーヒー1ぱい だよ。" },
+      { sentence: "A: I have a big dog. How about you? B: ( ) is small.", hint: "A: <ruby>大<rt>おお</rt></ruby>きいいぬがいるの。あなたは？ B: <ruby>私<rt>わたし</rt></ruby>のは<ruby>小<rt>ちい</rt></ruby>さいよ。", choices: ["My", "I", "Mine", "Me"], choicesMeaning: {"My":"わたしの","I":"わたしは","Mine":"わたしのもの","Me":"わたしを"}, answer: "Mine", explanation: "Mine（マイン）= わたしのもの。My dog の dog をはぶいた形だよ。" },
+      { sentence: "Kenji can ( ) English very well.", hint: "ケンジはとても<ruby>上手<rt>じょうず</rt></ruby>に<ruby>英語<rt>えいご</rt></ruby>をはなせるよ。", choices: ["see", "eat", "live", "speak"], choicesMeaning: {"see":"みる","eat":"たべる","live":"すむ","speak":"はなす"}, answer: "speak", explanation: "speak（スピーク）= はなす。speak English で「えいごをはなす」だよ。" },
+      { sentence: "A: Does Alice have any ( )? B: Yes. She has three dogs.", hint: "A: アリスはペットを<ruby>飼<rt>か</rt></ruby>ってる？ B: うん、いぬを3<ruby>匹<rt>びき</rt></ruby>。", choices: ["videos", "pets", "songs", "classes"], choicesMeaning: {"videos":"どうが","pets":"ペット","songs":"うた","classes":"じゅぎょう"}, answer: "pets", explanation: "pet（ペット）= ペット。dogs がいるから pets だね！" },
+      { sentence: "Alice eats toast for ( ).", hint: "アリスは<ruby>朝<rt>あさ</rt></ruby>ごはんにトーストを<ruby>食<rt>た</rt></ruby>べるよ。", choices: ["newspaper", "breakfast", "music", "snow"], choicesMeaning: {"newspaper":"しんぶん","breakfast":"あさごはん","music":"おんがく","snow":"ゆき"}, answer: "breakfast", explanation: "breakfast（ブレックファスト）= あさごはん。for breakfast = あさごはんに。" },
+      { sentence: "A: Bye, Brenda. ( ) a nice day.", hint: "じゃあね、ブレンダ。よい1<ruby>日<rt>にち</rt></ruby>を。", choices: ["Eat", "Go", "Come", "Have"], choicesMeaning: {"Eat":"たべる","Go":"いく","Come":"くる","Have":"もつ・～する"}, answer: "Have", explanation: "Have a nice day! = よい1日を！あいさつのきまり文句だよ。" },
+      { sentence: "I ( ) in the library from 9:30 to 11:30 every Sunday.", hint: "<ruby>私<rt>わたし</rt></ruby>は<ruby>毎週<rt>まいしゅう</rt></ruby><ruby>日曜<rt>にちよう</rt></ruby>に<ruby>図書館<rt>としょかん</rt></ruby>でべんきょうするよ。", choices: ["study", "drink", "jump", "open"], choicesMeaning: {"study":"べんきょうする","drink":"のむ","jump":"とぶ","open":"あける"}, answer: "study", explanation: "study（スタディ）= べんきょうする。library = としょかん だよ。" },
+      { sentence: "A: I want this notebook. How ( ) is it? B: It's 100 yen.", hint: "A: このノートがほしいな。いくら？ B: 100えんだよ。", choices: ["old", "much", "long", "many"], choicesMeaning: {"old":"ふるい・としをとった","much":"たくさん(りょう)","long":"ながい","many":"たくさん(かず)"}, answer: "much", explanation: "How much = いくら（ねだん）。おかねのことをきくときは much だよ。" },
+      { sentence: "My father always eats eggs for breakfast ( ) the morning.", hint: "<ruby>私<rt>わたし</rt></ruby>のおとうさんは<ruby>朝<rt>あさ</rt></ruby>、いつもたまごを<ruby>食<rt>た</rt></ruby>べるよ。", choices: ["on", "by", "in", "of"], choicesMeaning: {"on":"～の上・～に","by":"～のそば・～で","in":"～の中・～に","of":"～の"}, answer: "in", explanation: "in the morning で「あさに」。morning のまえは in をつかうよ！" },
+      { sentence: "Hiroshi always ( ) to bed at 9 p.m. and gets up at 6 a.m.", hint: "ひろしはいつも<ruby>夜<rt>よる</rt></ruby>9<ruby>時<rt>じ</rt></ruby>にねて<ruby>朝<rt>あさ</rt></ruby>6<ruby>時<rt>じ</rt></ruby>におきるよ。", choices: ["goes", "plays", "does", "sits"], choicesMeaning: {"goes":"いく","plays":"あそぶ","does":"する","sits":"すわる"}, answer: "goes", explanation: "go to bed = ねる。Hiroshi は he だから goes になるよ。" },
+      { sentence: "A: Please write your ( ) and telephone number here. B: OK.", hint: "A: おなまえとでんわばんごうをここにかいてね。B: わかった。", choices: ["bird", "name", "door", "watch"], choicesMeaning: {"bird":"とり","name":"なまえ","door":"ドア","watch":"とけい"}, answer: "name", explanation: "name（ネーム）= なまえ。write your name = なまえをかく。" },
+      { sentence: "Kelly often talks ( ) her future dream.", hint: "ケリーはよくしょうらいのゆめについてはなすよ。", choices: ["about", "by", "from", "under"], choicesMeaning: {"about":"～について","by":"～のそば","from":"～から","under":"～の下"}, answer: "about", explanation: "about（アバウト）= ～について。talk about ～ = ～についてはなす。" },
+      { sentence: "A: Dad, please help ( ). Today's homework is very hard. B: OK.", hint: "A: おとうさん、てつだって。きょうのしゅくだいむずかしいの。B: いいよ。", choices: ["I", "my", "me", "mine"], choicesMeaning: {"I":"わたしは","my":"わたしの","me":"わたしを","mine":"わたしのもの"}, answer: "me", explanation: "me（ミー）= わたしを。help me = わたしをてつだって。I は「わたしは」だよ。" },
+      { sentence: "A: Cathy, ( ) are you doing? B: I'm writing a letter.", hint: "A: キャシー、なにしてるの？ B: てがみをかいてるの。", choices: ["whose", "what", "when", "who"], choicesMeaning: {"whose":"だれの","what":"なに","when":"いつ","who":"だれ"}, answer: "what", explanation: "What are you doing? = なにしてるの？していること（もの）をきくときは What だよ。" },
+      { sentence: "My sister and I ( ) dinner every Sunday.", hint: "<ruby>私<rt>わたし</rt></ruby>とおねえちゃんは<ruby>毎週<rt>まいしゅう</rt></ruby><ruby>日曜<rt>にちよう</rt></ruby>にごはんをつくるよ。", choices: ["cook", "cooks", "cooking", "to cook"], choicesMeaning: {"cook":"つくる","cooks":"つくる(s)","cooking":"つくっている","to cook":"つくること"}, answer: "cook", explanation: "My sister and I = わたしたち（2人）。I/we のときは cook。s はつかないよ。" },
+      { sentence: "Mr. Kuroda is a ( ). Many people go to his hospital.", hint: "くろだせんせいはおいしゃさん。たくさんのひとがびょういんにくるよ。", choices: ["pilot", "doctor", "dancer", "teacher"], choicesMeaning: {"pilot":"パイロット","doctor":"おいしゃさん","dancer":"ダンサー","teacher":"せんせい"}, answer: "doctor", explanation: "doctor（ドクター）= いしゃ・おいしゃさん。hospital = びょういん だよ。" },
+      { sentence: "Nancy ( ) in California.", hint: "ナンシーはカリフォルニアにすんでいるよ。", choices: ["lives", "looks", "buys", "wants"], choicesMeaning: {"lives":"すんでいる","looks":"みる","buys":"かう","wants":"ほしい"}, answer: "lives", explanation: "live（リブ）= すむ。Nancy は she だから lives と s がつくよ。" },
+      { sentence: "A: Do you like English? B: Yes, ( ) course.", hint: "A: えいごは<ruby>好<rt>す</rt></ruby>き？ B: もちろん！", choices: ["in", "out", "on", "of"], choicesMeaning: {"in":"～の中","out":"そと","on":"～の上","of":"～の"}, answer: "of", explanation: "Of course! = もちろん！きまり文句だからそのままおぼえよう。" },
+      { sentence: "Ms. Brown has two children. ( ) names are Nick and Cindy.", hint: "ブラウンさんにはこどもが2<ruby>人<rt>り</rt></ruby>。なまえはニックとシンディ。", choices: ["They", "Theirs", "Them", "Their"], choicesMeaning: {"They":"かれらは","Theirs":"かれらのもの","Them":"かれらを","Their":"かれらの"}, answer: "Their", explanation: "Their（ゼア）= かれらの。names のまえだから「かれらの」の Their だよ。" },
+      { sentence: "A: Do you speak French? B: No, I ( ). But I speak Spanish.", hint: "A: フランスごはなせる？ B: いいえ。でもスペインごははなせるよ。", choices: ["don't", "doesn't", "isn't", "aren't"], choicesMeaning: {"don't":"～しない(I/you)","doesn't":"～しない(he/she)","isn't":"～ではない(1人)","aren't":"～ではない(2人〜)"}, answer: "don't", explanation: "I don't = わたしは～しない。I のあとは don't。he/she のときは doesn't だよ。" },
+      { sentence: "A: ( ) is your soccer practice, John? B: It's one hour.", hint: "A: サッカーれんしゅうはどのくらい？ B: 1じかんだよ。", choices: ["How long", "How old", "How much", "How many"], choicesMeaning: {"How long":"どのくらい(ながさ)","How old":"なんさい","How much":"いくら(ねだん)","How many":"いくつ(かず)"}, answer: "How long", explanation: "How long = どのくらい（じかん・ながさ）。How old = なんさい、How much = いくら だよ。" },
+      { sentence: "Look at that red ( ). It's swimming very fast.", hint: "あの<ruby>赤<rt>あか</rt></ruby>いさかなを<ruby>見<rt>み</rt></ruby>て！とてもはやくおよいでいるよ。", choices: ["ball", "flower", "fish", "river"], choicesMeaning: {"ball":"ボール","flower":"はな","fish":"さかな","river":"かわ"}, answer: "fish", explanation: "fish（フィッシュ）= さかな。swimming（およいでいる）だからさかなだね！" },
+    ];
+
+    // ─── 共通：紙吹雪＋ファンファーレ ───
+    function showConfetti() {
+      const container = document.createElement('div');
+      container.className = 'confetti-container';
+      document.body.appendChild(container);
+      const colors = ['#FF8A80','#FFD54F','#4DB6AC','#81D4FA','#CE93D8','#A5D6A7','#FF80AB'];
+      for (let i = 0; i < 60; i++) {
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.style.left = Math.random() * 100 + '%';
+        c.style.background = colors[Math.floor(Math.random() * colors.length)];
+        c.style.animationDelay = Math.random() * 1.5 + 's';
+        c.style.animationDuration = (2 + Math.random() * 2) + 's';
+        c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        c.style.width = (6 + Math.random() * 8) + 'px';
+        c.style.height = (6 + Math.random() * 8) + 'px';
+        container.appendChild(c);
+      }
+      setTimeout(() => container.remove(), 4000);
+    }
+
+    function playFanfare() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50];
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.value = freq;
+          osc.type = 'triangle';
+          gain.gain.value = 0.15;
+          gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.15);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.15 + 0.3);
+          osc.start(ctx.currentTime + i * 0.15);
+          osc.stop(ctx.currentTime + i * 0.15 + 0.3);
+        });
+        // Final chord
+        [523.25, 659.25, 783.99, 1046.50].forEach(freq => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.value = freq;
+          osc.type = 'triangle';
+          gain.gain.value = 0.12;
+          gain.gain.setValueAtTime(0.12, ctx.currentTime + 1.3);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2.5);
+          osc.start(ctx.currentTime + 1.3);
+          osc.stop(ctx.currentTime + 2.5);
+        });
+      } catch(e) {}
+    }
+
+    function showSetComplete(prefix, setSize, score) {
+      document.getElementById(prefix + '-quiz-area').style.display = 'none';
+      const completeEl = document.getElementById(prefix + '-set-complete');
+      completeEl.classList.add('show');
+      document.getElementById(prefix + '-complete-title').innerHTML = '🎉 ぜんぶできた！すごい！！';
+      document.getElementById(prefix + '-complete-score').innerHTML = `${setSize}もんちゅう ${score}もん <ruby>正解<rt>せいかい</rt></ruby>！`;
+      showConfetti();
+      playFanfare();
+    }
+
+    // ─── Q1：セット制＋学習フロー ───
+    const Q1_SET_SIZE = 15;
+    let q1Index = parseInt(localStorage.getItem('eiken5_q1_index') || '0');
+    let q1SetQueue = [];
+    let q1RetryQueue = [];
+    let q1SetPos = 0;
+    let q1SetScore = 0;
+    let q1IsRetry = false;
+    let q1WaitingTap = false;
+    let currentQ1 = null;
+
+    function startQ1Set() {
+      document.getElementById('q1-set-complete').classList.remove('show');
+      document.getElementById('q1-quiz-area').style.display = 'block';
+      q1SetQueue = [];
+      q1RetryQueue = [];
+      q1SetPos = 0;
+      q1SetScore = 0;
+      for (let i = 0; i < Q1_SET_SIZE; i++) {
+        if (q1Index >= questionsQ1.length) q1Index = 0;
+        q1SetQueue.push(questionsQ1[q1Index]);
+        q1Index++;
+      }
+      localStorage.setItem('eiken5_q1_index', q1Index.toString());
+      loadQ1();
+    }
+
+    function loadQ1() {
+      // 前の問題の読み上げを停止
+      stopSpeaking();
+      // Check if set is done
+      if (q1SetPos >= q1SetQueue.length) {
+        if (q1RetryQueue.length > 0) {
+          q1SetQueue = [...q1RetryQueue];
+          q1RetryQueue = [];
+          q1SetPos = 0;
+          q1IsRetry = true;
+        } else {
+          showSetComplete('q1', Q1_SET_SIZE, q1SetScore);
+          return;
+        }
+      }
+
+      q1WaitingTap = false;
+      document.getElementById('q1-next-btn').style.display = 'none';
+      document.getElementById('q1-message').innerHTML = '';
+      document.getElementById('q1-choices').innerHTML = '';
+      document.getElementById('q1-explanation').classList.remove('show');
+
+      currentQ1 = q1SetQueue[q1SetPos];
+      const total = q1IsRetry ? q1SetQueue.length : Q1_SET_SIZE;
+      const pos = q1SetPos + 1;
+      const label = q1IsRetry ? '🔄 もういちど！' : `${pos} / ${total}もんめ`;
+      document.getElementById('q1-progress').innerHTML = label;
+      document.getElementById('q1-progress-fill').style.width = (q1IsRetry ? 50 : (pos / total * 100)) + '%';
+
+      document.getElementById('q1-hint').innerHTML = currentQ1.hint || '';
+      const sentenceHTML = (currentQ1.sentence || '').replace('( )', '<span class="q-blank">　　　</span>');
+      document.getElementById('q1-sentence').innerHTML = sentenceHTML;
+
+      const choices = shuffleArray(currentQ1.choices);
+      const grid = document.getElementById('q1-choices');
+      choices.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerText = c;
+        btn.onclick = () => answerQ1(btn, c);
+        grid.appendChild(btn);
+      });
+
+      document.getElementById('q1-score').innerHTML = q1SetScore > 0 ? `${q1SetScore}もん <ruby>正解<rt>せいかい</rt></ruby>` : '';
+    }
+
+    function answerQ1(btn, choice) {
+      if (q1WaitingTap) {
+        // Tapping correct answer after wrong
+        if (choice === currentQ1.answer) {
+          btn.classList.remove('glow');
+          const msg = document.getElementById('q1-message');
+          msg.innerHTML = '';
+          const fullSentence = (currentQ1.sentence || '').replace('( )', currentQ1.answer);
+          speakQ1Sentence(fullSentence);
+          document.getElementById('q1-next-btn').style.display = 'inline-block';
+          q1WaitingTap = false;
+        }
+        return;
+      }
+
+      const correct = choice === currentQ1.answer;
+
+      saveAnswerRecord({
+        type: 'q1',
+        sentence: currentQ1.sentence,
+        hint: currentQ1.hint.replace(/<rt>[^<]*<\/rt>/g, '').replace(/<[^>]+>/g, ''),
+        choices: currentQ1.choices,
+        correctAnswer: currentQ1.answer,
+        userAnswer: choice,
+        correct: correct,
+        isRetry: q1IsRetry,
+        timestamp: new Date().toISOString()
+      });
+
+      const msg = document.getElementById('q1-message');
+      if (correct) {
+        q1SetScore++;
+        document.querySelectorAll('#q1-choices .choice-btn').forEach(b => {
+          b.disabled = true;
+          if (b.innerText === currentQ1.answer) b.classList.add('correct');
+        });
+        msg.style.color = 'var(--success)';
+        msg.innerHTML = q1IsRetry ? '🌟 おぼえたね！すごい！' : '🎉 <ruby>正解<rt>せいかい</rt></ruby>！すごい！';
+        const fullSentence = (currentQ1.sentence || '').replace('( )', currentQ1.answer);
+        speakQ1Sentence(fullSentence);
+        document.getElementById('q1-next-btn').style.display = 'inline-block';
+      } else {
+        btn.classList.add('wrong');
+        // Disable wrong buttons but keep correct one clickable
+        const meanings = currentQ1.choicesMeaning || {};
+        document.querySelectorAll('#q1-choices .choice-btn').forEach(b => {
+          const word = b.innerText;
+          if (word === currentQ1.answer) {
+            b.classList.add('correct', 'glow');
+          } else {
+            b.disabled = true;
+          }
+          // 全選択肢に意味を表示
+          if (meanings[word]) {
+            const span = document.createElement('span');
+            span.className = 'choice-meaning';
+            span.textContent = meanings[word];
+            b.appendChild(span);
+          }
+        });
+        msg.style.color = 'var(--error)';
+        msg.innerHTML = `😢 <ruby>不正解<rt>ふせいかい</rt></ruby>… <span class="tap-prompt">せいかいをタップしてね！</span>`;
+        // Show explanation
+        const expEl = document.getElementById('q1-explanation');
+        expEl.innerHTML = '💡 ' + (currentQ1.explanation || '');
+        expEl.classList.add('show');
+        // Add to retry (only if not already a retry)
+        if (!q1IsRetry) q1RetryQueue.push(currentQ1);
+        q1WaitingTap = true;
+      }
+      document.getElementById('q1-score').innerHTML = `${q1SetScore}もん <ruby>正解<rt>せいかい</rt></ruby>`;
+    }
+
+    function nextQ1() {
+      q1SetPos++;
+      loadQ1();
+    }
+
+    // ══════════════════════════════════════════════
+    //  大問2：会話文空所補充
+    // ══════════════════════════════════════════════
+    const questionsQ2 = [
+      // ── 過去問ベースの会話文（実試験形式） ──
+      { dialogueA: "Do you want some cookies?", hint: "クッキーいる？", choices: ["Four dollars, please.", "No, thanks.", "You're welcome.", "No, it isn't."], answer: "No, thanks.", explanation: "「No, thanks.」= いらないよ、ありがとう。ていねいなことわりかただよ。" },
+      { dialogueA: "What is in that box? Let's look.", hint: "あのはこの<ruby>中<rt>なか</rt></ruby>はなに？<ruby>見<rt>み</rt></ruby>てみよう。", choices: ["They're at school.", "He has one.", "I don't know.", "I have a lot of them."], answer: "I don't know.", explanation: "「I don't know.」= わからない。はこの中がわからないからこうこたえるよ。" },
+      { dialogueA: "Hi, Ellen. This flower is for you.", hint: "エレン、このおはなあげるよ。", choices: ["Thank you. It's pretty.", "I have one, too.", "She's not here.", "It's today."], answer: "Thank you. It's pretty.", explanation: "おはなをもらったら「ありがとう、きれい！」ってこたえるよね。pretty = きれい。" },
+      { dialogueA: "Do you study on Saturdays?", hint: "<ruby>土曜日<rt>どようび</rt></ruby>にべんきょうする？", choices: ["Yes, it's my book.", "Yes, on Sunday.", "Yes, I am.", "Yes, I do."], answer: "Yes, I do.", explanation: "Do you ～? ときかれたら Yes, I do. / No, I don't. でこたえるよ。" },
+      { dialogueA: "Let's play a game, Kenji.", hint: "ゲームしよう、ケンジ。", choices: ["It's for me.", "I'm not busy.", "I can't. I have homework.", "It's here."], answer: "I can't. I have homework.", explanation: "「I can't.」= できない。しゅくだいがあるからゲームできないんだね。" },
+      { dialogueA: "Where's Mom, Arthur? She's buying fruit for dinner.", hint: "おかあさんどこ？", choices: ["She's nice.", "At the store.", "On the weekend.", "She has many."], answer: "At the store.", explanation: "「At the store.」= おみせにいるよ。buying = かっている だからおみせだね。" },
+      { dialogueA: "Please open the window, Charlie.", hint: "チャーリー、<ruby>窓<rt>まど</rt></ruby>を<ruby>開<rt>あ</rt></ruby>けて。", choices: ["It's Sunday.", "To school.", "It's hot.", "At home."], answer: "It's hot.", explanation: "まどをあけてとたのまれて「あついもんね」。りゆうをこたえているよ。" },
+      { dialogueA: "This umbrella is nice. Whose is it?", hint: "このかさいいね。だれの？", choices: ["It's my father's.", "How do you make it?", "Do you often use it?", "Which is mine?"], answer: "It's my father's.", explanation: "Whose = だれの。「おとうさんのだよ」とこたえているね。my father's = おとうさんの。" },
+      { dialogueA: "Cindy, let's take some pictures here. This garden is so beautiful.", hint: "シンディ、ここでしゃしんとろう。このおにわきれいだね。", choices: ["That's a good idea.", "You're tall.", "It's mine.", "This book is nice."], answer: "That's a good idea.", explanation: "「That's a good idea!」= いいかんがえだね！さそわれて「いいね！」っていうときに使うよ。" },
+      { dialogueA: "Can I have some juice?", hint: "ジュースのんでいい？", choices: ["No, thanks.", "I like fish.", "Yes, I can.", "Of course. It's in the kitchen."], answer: "Of course. It's in the kitchen.", explanation: "「Of course.」= もちろん。kitchen = だいどころ。ジュースはだいどころにあるよって。" },
+      { dialogueA: "Where do you usually play baseball, Jack?", hint: "ジャック、ふだんどこでやきゅうするの？", choices: ["In the morning.", "Goodbye.", "You're here.", "Near my house."], answer: "Near my house.", explanation: "Where = どこ。「いえのちかくで」とばしょをこたえているよ。near = ちかく。" },
+      { dialogueA: "Mom, let's go to the shopping mall. How about this afternoon?", hint: "おかあさん、ショッピングモールいこう。きょうのごごはどう？", choices: ["I'm busy now.", "Is that your bag?", "Which color do you like?", "Who can go with you?"], answer: "I'm busy now.", explanation: "「I'm busy now.」= いまいそがしいの。ごごにいこうと言われてことわっているね。" },
+      { dialogueA: "Do you know those boys over there, Fred?", hint: "フレッド、あそこの<ruby>男<rt>おとこ</rt></ruby>の<ruby>子<rt>こ</rt></ruby>たちしってる？", choices: ["We're going home now.", "I can see them.", "They're my friends.", "It's for school."], answer: "They're my friends.", explanation: "「They're my friends.」= あの子たちはともだちだよ。しってる？ときかれてこたえてるね。" },
+      { dialogueA: "Can I use your dictionary, Eddie?", hint: "エディ、じしょかりていい？", choices: ["I'm sorry. I'm using it now.", "You're OK.", "I'm 150 cm.", "It's for you."], answer: "I'm sorry. I'm using it now.", explanation: "「I'm sorry.」= ごめんね。いま使ってるからかせないよ、ってていねいにことわってるね。" },
+      { dialogueA: "Dad, I can't find my red pen.", hint: "おとうさん、<ruby>赤<rt>あか</rt></ruby>いペンがみつからない。", choices: ["That's nice.", "It has five colors.", "Look. It's on the table.", "Let's go after lunch."], answer: "Look. It's on the table.", explanation: "ペンがみつからないから、「見て、テーブルのうえにあるよ」とおしえてくれてるね。" },
+      { dialogueA: "Bye, Mike.", hint: "じゃあね、マイク。", choices: ["I'm fine.", "See you.", "Good morning.", "Me, too."], answer: "See you.", explanation: "「See you.」= またね。Bye（じゃあね）にたいするあいさつだよ。" },
+      { dialogueA: "This is my new dress.", hint: "これ、<ruby>私<rt>わたし</rt></ruby>のあたらしいドレス。", choices: ["I can, too.", "It's beautiful.", "At the party.", "For my birthday."], answer: "It's beautiful.", explanation: "あたらしいドレスを見せられて「きれいだね！」ってほめているよ。beautiful = きれい・うつくしい。" },
+      { dialogueA: "Tom, I can't study with you after school today.", hint: "トム、きょうはほうかごいっしょにべんきょうできないの。", choices: ["Let's go.", "It's July 14th.", "That's all right.", "You're welcome."], answer: "That's all right.", explanation: "「That's all right.」= だいじょうぶだよ。あいてがあやまったりことわったときに使うよ。" },
+      { dialogueA: "How about this skirt, Ann?", hint: "アン、このスカートはどう？", choices: ["I can go.", "It's my favorite color.", "I'm sorry.", "I love it."], answer: "I love it.", explanation: "「I love it!」= だいすき！スカートをすすめられて気にいった！ってこたえてるよ。" },
+      { dialogueA: "Your English teacher is very young. How old is she, Carl?", hint: "えいごの<ruby>先生<rt>せんせい</rt></ruby>わかいね。なんさい？", choices: ["She's 25.", "She's a dancer.", "She's not very tall.", "She's not at home now."], answer: "She's 25.", explanation: "How old = なんさい。ねんれい（25さい）でこたえているよ。" },
+      { dialogueA: "Thank you very much.", hint: "どうもありがとう。", choices: ["You're welcome.", "I go to school.", "It's sunny.", "She is my friend."], answer: "You're welcome.", explanation: "「You're welcome.」= どういたしまして。Thank you のおへんじだよ。" },
+      { dialogueA: "What time is it now?", hint: "いま<ruby>何時<rt>なんじ</rt></ruby>？", choices: ["It's three o'clock.", "I am happy.", "She likes dogs.", "Yes, I do."], answer: "It's three o'clock.", explanation: "What time = なんじ。It's three o'clock. = 3じだよ。" },
+      { dialogueA: "How are you?", hint: "げんき？", choices: ["I'm fine, thank you.", "I go to school.", "It's a dog.", "She is tall."], answer: "I'm fine, thank you.", explanation: "「I'm fine, thank you.」= げんきだよ、ありがとう。あいさつのきまりもんくだね。" },
+      { dialogueA: "What's your favorite food?", hint: "<ruby>好<rt>す</rt></ruby>きな<ruby>食<rt>た</rt></ruby>べものは？", choices: ["I like sushi.", "I am happy.", "He is tall.", "Yes, I can."], answer: "I like sushi.", explanation: "favorite food = すきなたべもの。I like ～ = ～がすき でこたえるよ。" },
+      { dialogueA: "Is this your book?", hint: "これはあなたの<ruby>本<rt>ほん</rt></ruby>？", choices: ["Yes, it is.", "I go to school.", "She is tall.", "I like cats."], answer: "Yes, it is.", explanation: "Is this ～? ときかれたら Yes, it is. / No, it isn't. でこたえるよ。" },
+    ];
+
+    // ─── Q2：セット制＋学習フロー ───
+    const Q2_SET_SIZE = 5;
+    let q2Index = parseInt(localStorage.getItem('eiken5_q2_index') || '0');
+    let q2SetQueue = [];
+    let q2RetryQueue = [];
+    let q2SetPos = 0;
+    let q2SetScore = 0;
+    let q2IsRetry = false;
+    let q2WaitingTap = false;
+    let currentQ2 = null;
+
+    function startQ2Set() {
+      document.getElementById('q2-set-complete').classList.remove('show');
+      document.getElementById('q2-quiz-area').style.display = 'block';
+      q2SetQueue = [];
+      q2RetryQueue = [];
+      q2SetPos = 0;
+      q2SetScore = 0;
+      for (let i = 0; i < Q2_SET_SIZE; i++) {
+        if (q2Index >= questionsQ2.length) q2Index = 0;
+        q2SetQueue.push(questionsQ2[q2Index]);
+        q2Index++;
+      }
+      localStorage.setItem('eiken5_q2_index', q2Index.toString());
+      loadQ2();
+    }
+
+    function loadQ2() {
+      // 前の問題の読み上げを停止
+      stopSpeaking();
+      if (q2SetPos >= q2SetQueue.length) {
+        if (q2RetryQueue.length > 0) {
+          q2SetQueue = [...q2RetryQueue];
+          q2RetryQueue = [];
+          q2SetPos = 0;
+          q2IsRetry = true;
+        } else {
+          showSetComplete('q2', Q2_SET_SIZE, q2SetScore);
+          return;
+        }
+      }
+
+      q2WaitingTap = false;
+      document.getElementById('q2-next-btn').style.display = 'none';
+      document.getElementById('q2-message').innerHTML = '';
+      document.getElementById('q2-choices').innerHTML = '';
+      document.getElementById('q2-explanation').classList.remove('show');
+
+      currentQ2 = q2SetQueue[q2SetPos];
+      const total = q2IsRetry ? q2SetQueue.length : Q2_SET_SIZE;
+      const pos = q2SetPos + 1;
+      const label = q2IsRetry ? '🔄 もういちど！' : `${pos} / ${total}もんめ`;
+      document.getElementById('q2-progress').innerHTML = label;
+      document.getElementById('q2-progress-fill').style.width = (q2IsRetry ? 50 : (pos / total * 100)) + '%';
+
+      document.getElementById('q2-hint').innerHTML = `A: ${currentQ2.hint || ''}`;
+      document.getElementById('q2-dialogue').innerHTML = `
+        <div class="dialogue-a">👦 A: ${currentQ2.dialogueA || ''}</div>
+        <div class="dialogue-b">👧 B: （　　　　　　　　　）</div>`;
+      document.getElementById('q2-speak-btn').style.display = 'inline-block';
+      setTimeout(() => speakText(currentQ2.dialogueA || '', voiceA), 300);
+
+      const choices = shuffleArray(currentQ2.choices);
+      const grid = document.getElementById('q2-choices');
+      choices.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerText = c;
+        btn.onclick = () => answerQ2(btn, c);
+        grid.appendChild(btn);
+      });
+
+      document.getElementById('q2-score').innerHTML = q2SetScore > 0 ? `${q2SetScore}もん <ruby>正解<rt>せいかい</rt></ruby>` : '';
+    }
+
+    function answerQ2(btn, choice) {
+      if (q2WaitingTap) {
+        if (choice === currentQ2.answer) {
+          btn.classList.remove('glow');
+          document.getElementById('q2-message').innerHTML = '';
+          document.getElementById('q2-dialogue').innerHTML = `
+            <div class="dialogue-a">👦 A: ${currentQ2.dialogueA || ''}</div>
+            <div class="dialogue-b" style="color:var(--success)">👧 B: ${currentQ2.answer}</div>`;
+          speakDialogue(currentQ2.dialogueA || '', currentQ2.answer);
+          document.getElementById('q2-next-btn').style.display = 'inline-block';
+          q2WaitingTap = false;
+        }
+        return;
+      }
+
+      const correct = choice === currentQ2.answer;
+
+      saveAnswerRecord({
+        type: 'q2',
+        dialogueA: currentQ2.dialogueA,
+        hint: currentQ2.hint.replace(/<rt>[^<]*<\/rt>/g, '').replace(/<[^>]+>/g, ''),
+        choices: currentQ2.choices,
+        correctAnswer: currentQ2.answer,
+        userAnswer: choice,
+        correct: correct,
+        isRetry: q2IsRetry,
+        timestamp: new Date().toISOString()
+      });
+
+      const msg = document.getElementById('q2-message');
+      if (correct) {
+        q2SetScore++;
+        document.querySelectorAll('#q2-choices .choice-btn').forEach(b => {
+          b.disabled = true;
+          if (b.innerText === currentQ2.answer) b.classList.add('correct');
+        });
+        document.getElementById('q2-dialogue').innerHTML = `
+          <div class="dialogue-a">👦 A: ${currentQ2.dialogueA || ''}</div>
+          <div class="dialogue-b" style="color:var(--success)">👧 B: ${currentQ2.answer}</div>`;
+        msg.style.color = 'var(--success)';
+        msg.innerHTML = q2IsRetry ? '🌟 おぼえたね！すごい！' : '🎉 <ruby>正解<rt>せいかい</rt></ruby>！ナイス！';
+        speakDialogue(currentQ2.dialogueA || '', currentQ2.answer);
+        document.getElementById('q2-next-btn').style.display = 'inline-block';
+      } else {
+        btn.classList.add('wrong');
+        document.querySelectorAll('#q2-choices .choice-btn').forEach(b => {
+          if (b.innerText === currentQ2.answer) {
+            b.classList.add('correct', 'glow');
+          } else {
+            b.disabled = true;
+          }
+        });
+        msg.style.color = 'var(--error)';
+        msg.innerHTML = `😢 <ruby>不正解<rt>ふせいかい</rt></ruby>… <span class="tap-prompt">せいかいをタップしてね！</span>`;
+        const expEl = document.getElementById('q2-explanation');
+        expEl.innerHTML = '💡 ' + (currentQ2.explanation || '');
+        expEl.classList.add('show');
+        if (!q2IsRetry) q2RetryQueue.push(currentQ2);
+        q2WaitingTap = true;
+      }
+      document.getElementById('q2-score').innerHTML = `${q2SetScore}もん <ruby>正解<rt>せいかい</rt></ruby>`;
+    }
+
+    function nextQ2() {
+      q2SetPos++;
+      loadQ2();
+    }
+
+    function replayQ2Dialogue() {
+      if (!currentQ2) return;
+      const bEl = document.querySelector('#q2-dialogue .dialogue-b');
+      const bText = bEl ? bEl.innerText.replace('👧 B: ', '').trim() : '';
+      const isAnswered = bText && bText !== '（　　　　　　　　　）';
+      if (isAnswered) {
+        speakDialogue(currentQ2.dialogueA || '', currentQ2.answer);
+      } else {
+        speakText(currentQ2.dialogueA || '', voiceA);
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    //  大問3：語句整序（電車パズル）
+    // ══════════════════════════════════════════════
+    const animalIcons = {
+      dog: `<svg class="animal-icon" viewBox="0 0 100 100" width="80" height="80"><circle cx="50" cy="55" r="40" fill="#D7CCC8"/><circle cx="35" cy="45" r="5" fill="#3E2723"/><circle cx="65" cy="45" r="5" fill="#3E2723"/><ellipse cx="50" cy="65" rx="15" ry="10" fill="#EFEBE9"/><circle cx="50" cy="62" r="4" fill="#3E2723"/><path d="M 45 70 Q 50 75 55 70" stroke="#3E2723" fill="none" stroke-width="2" stroke-linecap="round"/><path d="M 25 30 Q 10 40 20 60 Q 30 40 25 30" fill="#8D6E63"/><path d="M 75 30 Q 90 40 80 60 Q 70 40 75 30" fill="#8D6E63"/></svg>`,
+      cat: `<svg class="animal-icon" viewBox="0 0 100 100" width="80" height="80"><polygon points="15,40 25,10 45,30" fill="#FFCC80"/><polygon points="85,40 75,10 55,30" fill="#FFCC80"/><circle cx="50" cy="55" r="40" fill="#FFE0B2"/><circle cx="35" cy="50" r="5" fill="#4E342E"/><circle cx="65" cy="50" r="5" fill="#4E342E"/><polygon points="47,60 53,60 50,64" fill="#EF9A9A"/><path d="M 50 64 Q 40 70 35 62 M 50 64 Q 60 70 65 62" stroke="#4E342E" fill="none" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="55" x2="25" y2="55" stroke="#4E342E" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="65" x2="25" y2="60" stroke="#4E342E" stroke-width="2" stroke-linecap="round"/><line x1="90" y1="55" x2="75" y2="55" stroke="#4E342E" stroke-width="2" stroke-linecap="round"/><line x1="90" y1="65" x2="75" y2="60" stroke="#4E342E" stroke-width="2" stroke-linecap="round"/></svg>`,
+      hamster: `<svg class="animal-icon" viewBox="0 0 100 100" width="80" height="80"><circle cx="50" cy="55" r="45" fill="#FFB74D"/><circle cx="50" cy="65" r="30" fill="#FFF3E0"/><circle cx="25" cy="25" r="15" fill="#FFB74D"/><circle cx="75" cy="25" r="15" fill="#FFB74D"/><circle cx="35" cy="45" r="6" fill="#3E2723"/><circle cx="65" cy="45" r="6" fill="#3E2723"/><circle cx="50" cy="55" r="4" fill="#F48FB1"/><path d="M 50 55 Q 45 65 40 60 M 50 55 Q 55 65 60 60" stroke="#3E2723" fill="none" stroke-width="2" stroke-linecap="round"/><rect x="42" y="60" width="16" height="8" fill="#FFFFFF" rx="2"/><line x1="50" y1="60" x2="50" y2="68" stroke="#E0E0E0" stroke-width="1"/></svg>`,
+      panda: `<svg class="animal-icon" viewBox="0 0 100 100" width="80" height="80"><circle cx="25" cy="30" r="15" fill="#212121"/><circle cx="75" cy="30" r="15" fill="#212121"/><circle cx="50" cy="55" r="40" fill="#FFFFFF"/><circle cx="35" cy="50" r="12" fill="#212121"/><circle cx="65" cy="50" r="12" fill="#212121"/><circle cx="35" cy="48" r="4" fill="#FFFFFF"/><circle cx="65" cy="48" r="4" fill="#FFFFFF"/><ellipse cx="50" cy="65" rx="6" ry="4" fill="#212121"/><path d="M 50 69 Q 45 75 40 70 M 50 69 Q 55 75 60 70" stroke="#212121" fill="none" stroke-width="2" stroke-linecap="round"/></svg>`,
+      axolotl: `<svg class="animal-icon" viewBox="0 0 100 100" width="80" height="80"><path d="M 20 40 Q 5 30 15 50 M 20 50 Q 0 50 15 60 M 25 60 Q 10 70 20 70" stroke="#F48FB1" fill="none" stroke-width="6" stroke-linecap="round"/><path d="M 80 40 Q 95 30 85 50 M 80 50 Q 100 50 85 60 M 75 60 Q 90 70 80 70" stroke="#F48FB1" fill="none" stroke-width="6" stroke-linecap="round"/><ellipse cx="50" cy="55" rx="35" ry="30" fill="#FCE4EC"/><circle cx="35" cy="50" r="4" fill="#3E2723"/><circle cx="65" cy="50" r="4" fill="#3E2723"/><path d="M 45 65 Q 50 70 55 65" stroke="#3E2723" fill="none" stroke-width="2" stroke-linecap="round"/><circle cx="25" cy="55" r="6" fill="#F48FB1" opacity="0.5"/><circle cx="75" cy="55" r="6" fill="#F48FB1" opacity="0.5"/></svg>`,
+      shimaenaga: `<svg class="animal-icon" viewBox="0 0 100 100" width="80" height="80"><ellipse cx="50" cy="55" rx="35" ry="40" fill="#FFFFFF"/><path d="M 15 50 Q 5 60 10 70 Q 20 60 20 50" fill="#8D6E63"/><path d="M 85 50 Q 95 60 90 70 Q 80 60 80 50" fill="#8D6E63"/><circle cx="38" cy="45" r="4" fill="#212121"/><circle cx="62" cy="45" r="4" fill="#212121"/><polygon points="48,50 52,50 50,54" fill="#212121"/><circle cx="30" cy="50" r="4" fill="#FFCDD2" opacity="0.8"/><circle cx="70" cy="50" r="4" fill="#FFCDD2" opacity="0.8"/><path d="M 40 95 Q 35 105 30 95 M 60 95 Q 65 105 70 95" stroke="#8D6E63" fill="none" stroke-width="3" stroke-linecap="round"/></svg>`
+    };
+
+    const questionsQ3 = [
+      // ── 基本文（やさしめ） ──
+      { hint: "「<ruby>私<rt>わたし</rt></ruby>はテニスをします。」", words: ["tennis", "I", "play", "."], answer: "I play tennis .", explanation: "「だれが」→「なにをする」→「なにを」の順。I play tennis だよ。" },
+      { hint: "「あなたは<ruby>学生<rt>がくせい</rt></ruby>です。」", words: ["are", "student", "a", "You", "."], answer: "You are a student .", explanation: "You are ～ = あなたは～です。a student の a をわすれないでね。" },
+      { hint: "「これはペンです。」", words: ["pen", "This", "a", "is", "."], answer: "This is a pen .", explanation: "This is ～ = これは～です。a pen で「1本のペン」だよ。" },
+      { hint: "「<ruby>私<rt>わたし</rt></ruby>は２ひきのねこをかっています。」", words: ["have", "I", "cats", "two", "."], answer: "I have two cats .", explanation: "I have ～ = わたしは～をもっている。two cats = 2ひきのねこ。" },
+      { hint: "「あなたはおんがくがすきですか？」", words: ["music", "Do", "like", "you", "?"], answer: "Do you like music ?", explanation: "しつもんは Do you ～? のじゅんばん。Do が先にくるよ。" },
+      { hint: "「<ruby>私<rt>わたし</rt></ruby>たちは<ruby>学校<rt>がっこう</rt></ruby>へいきます。」", words: ["go", "to", "school", "We", "."], answer: "We go to school .", explanation: "go to ～ = ～へいく。We go to school だよ。" },
+      { hint: "「これはなんですか？」", words: ["this", "What", "is", "?"], answer: "What is this ?", explanation: "しつもんのことば（What）がいちばん前にくるよ。What is this?" },
+      { hint: "「おげんきですか？」", words: ["are", "How", "you", "?"], answer: "How are you ?", explanation: "あいさつのきまりもんく。How are you? でそのままおぼえよう！" },
+      { hint: "「サッカーをしましょう。」", words: ["soccer", "Let's", "play", "."], answer: "Let's play soccer .", explanation: "Let's ～ = ～しましょう。Let's のあとに play soccer がくるよ。" },
+      { hint: "「また<ruby>明日<rt>あした</rt></ruby>。」", words: ["tomorrow", "you", "See", "."], answer: "See you tomorrow .", explanation: "See you ～ = またね。きまりもんくだからそのままおぼえよう！" },
+      // ── 過去問ベース ──
+      { hint: "「これらは<ruby>私<rt>わたし</rt></ruby>のくつではありません。」 These ( ) shoes.", words: ["are", "not", "my", "."], answer: "are not my .", explanation: "are not = ～ではない。These are not my shoes = これらはわたしのくつじゃない。" },
+      { hint: "「シドニーはうつくしい<ruby>都市<rt>とし</rt></ruby>です。」 Sydney ( ).", words: ["city", "a", "is", "beautiful", "."], answer: "is a beautiful city .", explanation: "beautiful（うつくしい）は city（とし）のまえにおくよ。a beautiful city!" },
+      { hint: "「<ruby>私<rt>わたし</rt></ruby>のおにいちゃんは<ruby>毎朝<rt>まいあさ</rt></ruby>かみをあらいます。」 ( ) morning.", words: ["washes", "every", "his hair", "My brother", "."], answer: "My brother washes his hair every .", explanation: "「だれが」My brother →「なにをする」washes →「なにを」his hair → every morning" },
+      { hint: "「<ruby>山田<rt>やまだ</rt></ruby>さんのジャケットはどこですか。」 ( ) ?", words: ["Mr. Yamada's", "jacket", "is", "Where", "?"], answer: "Where is Mr. Yamada's jacket ?", explanation: "Where is ～? = ～はどこ？ Where がいちばん前にくるよ。" },
+      { hint: "「あなたは<ruby>私<rt>わたし</rt></ruby>のコンサートにこられますか。」 ( ) my concert?", words: ["to", "can", "come", "you", "?"], answer: "can you come to ?", explanation: "Can you ～? = ～できる？ come to ～ = ～にくる。" },
+      { hint: "「<ruby>私<rt>わたし</rt></ruby>はシンガポールにたくさんのともだちがいます。」 I ( ) in Singapore.", words: ["of", "friends", "a lot", "have", "."], answer: "have a lot of friends .", explanation: "a lot of ～ = たくさんの～。have a lot of friends = たくさんのともだちがいる。" },
+      { hint: "「このはなはトムへのプレゼントです。」 This flower ( ).", words: ["Tom", "is", "for", "a present", "."], answer: "is a present for Tom .", explanation: "a present for ～ = ～へのプレゼント。for は「～のために」だよ。" },
+      { hint: "「ビルと<ruby>私<rt>わたし</rt></ruby>は<ruby>冬<rt>ふゆ</rt></ruby>にスキーにいきます。」 Bill ( ) in winter.", words: ["skiing", "go", "and", "I", "."], answer: "and I go skiing .", explanation: "go skiing = スキーにいく。Bill and I で「ビルとわたし」だよ。" },
+      { hint: "「<ruby>私<rt>わたし</rt></ruby>は<ruby>毎晩<rt>まいばん</rt></ruby>8じかんねむります。」 I ( ) every night.", words: ["sleep", "hours", "for", "eight", "."], answer: "sleep for eight hours .", explanation: "for eight hours = 8じかん。sleep for ～ = ～のあいだねむる。" },
+      { hint: "「キャシーはどこでテニスをしますか。」 ( ) tennis?", words: ["does", "Where", "Cathy", "play", "?"], answer: "Where does Cathy play ?", explanation: "Where does ～ play? のじゅんばん。does は she/he のしつもんで使うよ。" },
+      { hint: "「あなたのおかあさんのなまえはひろこですか。」 ( ) Hiroko?", words: ["name", "mother's", "Is", "your", "?"], answer: "Is your mother's name ?", explanation: "Is ～? = ～ですか？ your mother's name = あなたのおかあさんのなまえ。" },
+      { hint: "「ジュディ、おねえさんはどうやってピアノをれんしゅうしますか。」 Judy, ( ) the piano?", words: ["practice", "how", "your sister", "does", "?"], answer: "how does your sister practice ?", explanation: "How does ～? = どうやって～する？ how → does → だれが → なにをする のじゅんばん。" },
+      { hint: "「<ruby>私<rt>わたし</rt></ruby>はいつも<ruby>朝<rt>あさ</rt></ruby>6じにおきます。」 I always ( ) in the morning.", words: ["up", "get", "six", "at", "."], answer: "get up at six .", explanation: "get up = おきる。at six = 6じに。get up at six!" },
+      { hint: "「<ruby>私<rt>わたし</rt></ruby>たちは<ruby>毎日<rt>まいにち</rt></ruby>、きょうしつをそうじします。」 ( ) every day.", words: ["clean", "classroom", "our", "We", "."], answer: "We clean our classroom .", explanation: "「だれが」We →「なにをする」clean →「なにを」our classroom のじゅんばんだよ。" },
+      { hint: "「まどをしめてくれますか。」 ( ), please?", words: ["you", "close", "Can", "the window", "?"], answer: "Can you close the window ?", explanation: "Can you ～? = ～してくれる？ Can → you → close → the window だよ。" },
+      // ── 音羽の苦手単語を使ったオリジナル ──
+      { hint: "「<ruby>私<rt>わたし</rt></ruby>はバスで<ruby>学校<rt>がっこう</rt></ruby>にいきます。」", words: ["go", "bus", "I", "by", "to", "school", "."], answer: "I go to school by bus .", explanation: "go to school = がっこうにいく。by bus = バスで。「手だん」は by だよ。" },
+      { hint: "「あなたはバスケットボールがすきですか？」", words: ["basketball", "Do", "like", "you", "?"], answer: "Do you like basketball ?", explanation: "Do you like ～? = ～がすきですか？ Do が先にくるよ。" },
+      { hint: "「<ruby>私<rt>わたし</rt></ruby>のおばさんはせがたかいです。」", words: ["is", "tall", "My", "aunt", "."], answer: "My aunt is tall .", explanation: "My aunt = わたしのおばさん。is tall = せがたかい。aunt = おばさん だよ。" },
+      { hint: "「あの<ruby>女<rt>おんな</rt></ruby>の<ruby>子<rt>こ</rt></ruby>はだれですか？」", words: ["is", "that", "Who", "girl", "?"], answer: "Who is that girl ?", explanation: "Who is ～? = ～はだれ？ that girl = あのおんなのこ。" },
+      { hint: "「オレンジジュースをのみましょう。」", words: ["drink", "Let's", "juice", "orange", "."], answer: "Let's drink orange juice .", explanation: "Let's ～ = ～しましょう。orange juice = オレンジジュース。" },
+      { hint: "「<ruby>台所<rt>だいどころ</rt></ruby>でチョコレートをつくりましょう。」", words: ["make", "the kitchen", "in", "chocolate", "Let's", "."], answer: "Let's make chocolate in the kitchen .", explanation: "Let's make ～ = ～をつくろう。in the kitchen = だいどころで。" },
+      { hint: "「あたらしいじてんしゃがほしいです。」", words: ["want", "a", "bike", "new", "I", "."], answer: "I want a new bike .", explanation: "I want ～ = ～がほしい。a new bike = あたらしいじてんしゃ。new が bike のまえだよ。" },
+      { hint: "「<ruby>彼女<rt>かのじょ</rt></ruby>は<ruby>赤<rt>あか</rt></ruby>いりんごをもっています。」", words: ["has", "red", "apple", "a", "She", "."], answer: "She has a red apple .", explanation: "She has ～ = かのじょは～をもっている。she のときは has（have じゃないよ）。" },
+      { hint: "「<ruby>私<rt>わたし</rt></ruby>のちちはいしゃです。」", words: ["doctor", "is", "My", "a", "father", "."], answer: "My father is a doctor .", explanation: "My father = わたしのおとうさん。a doctor = おいしゃさん。" },
+      { hint: "「ほうかご、<ruby>私<rt>わたし</rt></ruby>はテニスをします。」", words: ["tennis", "play", "after", "I", "school", "."], answer: "I play tennis after school .", explanation: "after school = ほうかご。I play tennis が先で、after school が最後だよ。" },
+    ];
+
+    // ─── Q3：セット制＋学習フロー ───
+    const Q3_SET_SIZE = 5;
+    let q3Index = parseInt(localStorage.getItem('eiken5_q3_index') || '0');
+    let q3SetQueue = [];
+    let q3RetryQueue = [];
+    let q3SetPos = 0;
+    let q3SetScore = 0;
+    let q3IsRetry = false;
+    let currentQuestion = null;
+    let poolWords = [];
+    let selectedWords = [];
+
+    function startQ3Set() {
+      document.getElementById('q3-set-complete').classList.remove('show');
+      document.getElementById('q3-quiz-area').style.display = 'block';
+      q3SetQueue = [];
+      q3RetryQueue = [];
+      q3SetPos = 0;
+      q3SetScore = 0;
+      q3IsRetry = false;
+      for (let i = 0; i < Q3_SET_SIZE; i++) {
+        if (q3Index >= questionsQ3.length) q3Index = 0;
+        q3SetQueue.push(questionsQ3[q3Index]);
+        q3Index++;
+      }
+      localStorage.setItem('eiken5_q3_index', q3Index.toString());
+      loadQ3();
+    }
+
+    function loadQ3() {
+      if (q3SetPos >= q3SetQueue.length) {
+        if (q3RetryQueue.length > 0) {
+          q3SetQueue = [...q3RetryQueue];
+          q3RetryQueue = [];
+          q3SetPos = 0;
+          q3IsRetry = true;
+        } else {
+          showSetComplete('q3', Q3_SET_SIZE, q3SetScore);
+          return;
+        }
+      }
+
+      currentQuestion = q3SetQueue[q3SetPos];
+      const total = q3IsRetry ? q3SetQueue.length : Q3_SET_SIZE;
+      const pos = q3SetPos + 1;
+      const label = q3IsRetry ? '🔄 もういちど！' : `${pos} / ${total}もんめ`;
+      document.getElementById('q3-progress').innerHTML = label;
+      document.getElementById('q3-progress-fill').style.width = (q3IsRetry ? 50 : (pos / total * 100)) + '%';
+
+      loadQuestionUI();
+    }
+
+    function loadQuestionUI() {
+      let displayHint = currentQuestion.hint;
+      if (!displayHint.startsWith("「")) displayHint = "「" + displayHint + "」";
+      document.getElementById("japanese-hint").innerHTML = displayHint;
+      document.getElementById("message").innerHTML = '';
+      document.getElementById("train-track").style.backgroundColor = "#FAFAFA";
+      document.getElementById("check-btn").style.display = "inline-block";
+      document.getElementById("reset-btn").style.display = "inline-block";
+      document.getElementById("next-btn").style.display = "none";
+      document.getElementById("q3-explanation").classList.remove('show');
+
+      const pool = document.getElementById("words-pool");
+      pool.innerHTML = '';
+      poolWords = [];
+      selectedWords = [];
+
+      const displayWords = currentQuestion.words.filter(w => !['.',  '?', ',', '!'].includes(w));
+      let shuffled = [...displayWords].sort(() => Math.random() - 0.5);
+      shuffled.forEach((word, i) => {
+        poolWords.push({ id: i, word: word, isUsed: false });
+        let btn = document.createElement("div");
+        btn.className = "word-btn";
+        btn.innerText = word;
+        btn.id = `pool-btn-${i}`;
+        btn.onclick = () => selectWord(i);
+        pool.appendChild(btn);
+      });
+      renderTrack();
+    }
+
+    function selectWord(id) {
+      if (poolWords[id].isUsed) return;
+      poolWords[id].isUsed = true;
+      document.getElementById(`pool-btn-${id}`).classList.add("hidden");
+      selectedWords.push(poolWords[id]);
+      renderTrack();
+    }
+
+    function undoWord(idx) {
+      const removed = selectedWords.splice(idx, 1)[0];
+      removed.isUsed = false;
+      document.getElementById(`pool-btn-${removed.id}`).classList.remove("hidden");
+      renderTrack();
+    }
+
+    function renderTrack() {
+      const track = document.getElementById("train-track");
+      track.innerHTML = '';
+      selectedWords.forEach((item, index) => {
+        let span = document.createElement("div");
+        span.className = "word-btn";
+        span.innerText = item.word;
+        span.onclick = () => undoWord(index);
+        track.appendChild(span);
+      });
+    }
+
+    function resetTrack() {
+      selectedWords.forEach(item => {
+        item.isUsed = false;
+        document.getElementById(`pool-btn-${item.id}`).classList.remove("hidden");
+      });
+      selectedWords = [];
+      renderTrack();
+      document.getElementById("message").innerHTML = '';
+      document.getElementById("train-track").style.backgroundColor = "#FAFAFA";
+    }
+
+    function checkAnswer() {
+      if (selectedWords.length === 0) return;
+      const userAnswer = selectedWords.map(item => item.word).join(" ");
+      const nUser = userAnswer.replace(/\s+/g, '').toLowerCase();
+      const nAns  = currentQuestion.answer.replace(/[.?,!]/g, '').replace(/\s+/g, '').toLowerCase();
+      const nWords = currentQuestion.words.filter(w => !['.',  '?', ',', '!'].includes(w)).join('').toLowerCase();
+
+      const msgEl = document.getElementById("message");
+      const trackEl = document.getElementById("train-track");
+      const correct = (nUser === nAns || nUser === nWords);
+
+      saveAnswerRecord({
+        type: 'q3',
+        hint: currentQuestion.hint.replace(/<rt>[^<]*<\/rt>/g, '').replace(/<[^>]+>/g, ''),
+        correctAnswer: currentQuestion.answer,
+        userAnswer: userAnswer,
+        correct: correct,
+        isRetry: q3IsRetry,
+        timestamp: new Date().toISOString()
+      });
+
+      if (correct) {
+        q3SetScore++;
+        msgEl.style.color = "var(--success)";
+        msgEl.innerHTML = q3IsRetry ? '🌟 おぼえたね！すごい！' : '🎉 <ruby>大正解<rt>だいせいかい</rt></ruby>！ナイス！';
+        trackEl.style.backgroundColor = "#E8F5E9";
+        speakText(currentQuestion.answer);
+        document.getElementById("check-btn").style.display = "none";
+        document.getElementById("reset-btn").style.display = "none";
+        document.getElementById("next-btn").style.display = "inline-block";
+      } else {
+        msgEl.style.color = "var(--error)";
+        msgEl.innerHTML = `😢 <ruby>不正解<rt>ふせいかい</rt></ruby>… <ruby>正<rt>ただ</rt></ruby>しいこたえ：<strong>${currentQuestion.answer}</strong>`;
+        trackEl.style.backgroundColor = "#FFEBEE";
+        // 解説表示
+        const expEl = document.getElementById('q3-explanation');
+        expEl.innerHTML = '💡 ' + (currentQuestion.explanation || '');
+        expEl.classList.add('show');
+        // リトライキューに追加
+        if (!q3IsRetry) q3RetryQueue.push(currentQuestion);
+        // 正解を読み上げ
+        speakText(currentQuestion.answer);
+        document.getElementById("check-btn").style.display = "none";
+        document.getElementById("reset-btn").style.display = "none";
+        document.getElementById("next-btn").style.display = "inline-block";
+      }
+    }
+
+    function nextQ3() {
+      q3SetPos++;
+      loadQ3();
+    }
+
+    // ══════════════════════════════════════════════
+    //  初期化
+    // ══════════════════════════════════════════════
+    window.onload = function() {
+      initVocab();
+    };
+
+    // タブ切り替え時にセットを開始
+    const origSwitchTab = switchTab;
+    let q1Loaded = false;
+    let q2Loaded = false;
+    let q3Loaded = false;
+
+    switchTab = function(tab) {
+      origSwitchTab(tab);
+      if (tab === 'q1' && !q1Loaded) { q1Loaded = true; startQ1Set(); }
+      if (tab === 'q2' && !q2Loaded) { q2Loaded = true; startQ2Set(); }
+      if (tab === 'q3' && !q3Loaded) { q3Loaded = true; startQ3Set(); }
+    };
+  </script>
+</body>
+</html>

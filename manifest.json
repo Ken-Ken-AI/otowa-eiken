@@ -1,0 +1,15 @@
+{
+  "name": "英検5級 えいごトレーニング",
+  "short_name": "えいけん5きゅう",
+  "start_url": "./english-train-gemini5.html",
+  "display": "standalone",
+  "background_color": "#FFF0F5",
+  "theme_color": "#FF8A80",
+  "icons": [
+    {
+      "src": "icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
