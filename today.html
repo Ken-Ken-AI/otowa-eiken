@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="きょうの音羽">
 <meta name="theme-color" content="#FFF5F7">
-<title>4がつ15にち 音羽ちゃん専用</title>
+<title>4がつ17にち 音羽ちゃん専用</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
@@ -74,7 +74,6 @@
     box-shadow: 0 3px 0 rgba(0,0,0,0.08);
   }
 
-  /* セクションインジケータ */
   .section-dots {
     display: flex;
     justify-content: center;
@@ -250,6 +249,33 @@
 
   .q-score { font-size: 13px; color: #9E9E9E; margin-bottom: 6px; }
 
+  /* ══ 会話文用 ══ */
+  .conv-box {
+    background: #E3F2FD;
+    border: 3px solid #90CAF9;
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin: 8px auto 12px;
+    max-width: 92%;
+    text-align: left;
+    font-size: 16px;
+    line-height: 1.8;
+  }
+  .conv-box .speaker {
+    font-weight: 700;
+    color: #1565C0;
+    margin-right: 6px;
+  }
+  .conv-box .speaker-b {
+    color: #AD1457;
+  }
+  .conv-ja {
+    font-size: 13px;
+    color: #757575;
+    margin-top: 4px;
+    display: block;
+  }
+
   /* ══ ごほうび画面 ══ */
   .reward {
     padding: 20px 10px;
@@ -302,20 +328,21 @@
 <body>
 
 <div class="container">
-  <div class="date-badge">🌸 4<ruby>月<rt>がつ</rt></ruby>15<ruby>日<rt>にち</rt></ruby>（<ruby>水<rt>すい</rt></ruby>） 🌱</div>
+  <div class="date-badge">🌸 4<ruby>月<rt>がつ</rt></ruby>17<ruby>日<rt>にち</rt></ruby>（<ruby>土<rt>ど</rt></ruby>） 🌱</div>
   <h1>きょうの<ruby>音羽<rt>おとわ</rt></ruby>ちゃんスペシャル</h1>
-  <div class="subtitle">きょうの<ruby>目標<rt>もくひょう</rt></ruby>は4つの<ruby>単語<rt>たんご</rt></ruby>！</div>
+  <div class="subtitle">きょうのテーマは「<ruby>学校<rt>がっこう</rt></ruby>のことば」と「<ruby>会話<rt>かいわ</rt></ruby>」！</div>
 
   <div class="section-dots">
     <div class="dot active" id="dot-flash"></div>
     <div class="dot" id="dot-challenge"></div>
+    <div class="dot" id="dot-conv"></div>
     <div class="dot" id="dot-reward"></div>
   </div>
 
   <!-- ═══ ステージ1：フラッシュカード ═══ -->
   <div id="stage-flash">
     <div class="stage-label">🌟 ステージ1：きょうの<ruby>単語<rt>たんご</rt></ruby>フラッシュ</div>
-    <div class="q-score" id="flash-progress">1 / 4</div>
+    <div class="q-score" id="flash-progress">1 / 5</div>
     <div class="flash-card" id="flash-card">
       <div class="flash-english" id="flash-en"></div>
       <div class="flash-ja" id="flash-ja"></div>
@@ -330,9 +357,9 @@
     </div>
   </div>
 
-  <!-- ═══ ステージ2：チャレンジ問題 ═══ -->
+  <!-- ═══ ステージ2：大問1 チャレンジ ═══ -->
   <div id="stage-challenge" class="hidden">
-    <div class="stage-label">🎯 ステージ2：チャレンジ<ruby>問題<rt>もんだい</rt></ruby></div>
+    <div class="stage-label">🎯 ステージ2：<ruby>大問<rt>だいもん</rt></ruby>1（あなうめ）</div>
     <div class="q-score" id="ch-progress">1 / 4　せいかい：0</div>
     <div class="q-hint" id="ch-hint"></div>
     <div class="q-sentence" id="ch-sentence"></div>
@@ -345,7 +372,22 @@
     </div>
   </div>
 
-  <!-- ═══ ステージ3：ごほうび ═══ -->
+  <!-- ═══ ステージ3：大問2 会話文 ═══ -->
+  <div id="stage-conv" class="hidden">
+    <div class="stage-label">💬 ステージ3：<ruby>大問<rt>だいもん</rt></ruby>2（<ruby>会話文<rt>かいわぶん</rt></ruby>）</div>
+    <div class="q-score" id="cv-progress">1 / 3　せいかい：0</div>
+    <div class="q-hint" id="cv-hint"></div>
+    <div class="conv-box" id="cv-box"></div>
+    <div class="choices" id="cv-choices"></div>
+    <div class="q-message" id="cv-message"></div>
+    <div class="explain-box" id="cv-explain"></div>
+    <div class="btn-row">
+      <button class="btn btn-sky hidden" id="cv-replay-btn" onclick="replayConv()">🔊 もう<ruby>一度<rt>いちど</rt></ruby></button>
+      <button class="btn btn-green hidden" id="cv-next-btn" onclick="nextConv()">つぎへ →</button>
+    </div>
+  </div>
+
+  <!-- ═══ ステージ4：ごほうび ═══ -->
   <div id="stage-reward" class="hidden reward">
     <h2>🎉 きょうも よくがんばったね！</h2>
     <div class="stars" id="reward-stars"></div>
@@ -360,71 +402,128 @@
 
 <script>
 // ═══════════════════════════════════════
-//  データ：きょうの4単語＋チャレンジ4問
+//  データ：きょうの5単語＋大問1の4問＋大問2の3問
 // ═══════════════════════════════════════
 const flashCards = [
   {
-    en: 'heavy',
-    ja: 'おもい',
-    ex: 'This bag is heavy.',
-    exJa: 'このかばんは おもい。',
-    tip: '反対語は light（かるい）だよ！'
+    en: 'teacher',
+    ja: 'せんせい',
+    ex: 'My teacher is kind.',
+    exJa: 'わたしの 先生は やさしい。',
+    tip: 'teach（おしえる）＋er で「おしえる人」＝先生！'
   },
   {
-    en: 'drink',
-    ja: 'のむ',
-    ex: 'I drink orange juice.',
-    exJa: 'わたしは オレンジジュースを のむよ。',
-    tip: 'にている言葉：eat（たべる）'
+    en: 'student',
+    ja: 'せいと・がくせい',
+    ex: 'I am a student.',
+    exJa: 'わたしは 学生です。',
+    tip: 'gakusei と stu-dent、にてる音があるね！'
   },
   {
-    en: 'Who',
-    ja: 'だれ',
-    ex: 'Who is your teacher?',
-    exJa: 'あなたの先生は だれ？',
-    tip: 'ひと→Who、ばしょ→Where、もの→What、ときは→When'
+    en: 'homework',
+    ja: 'しゅくだい',
+    ex: 'I do my homework every day.',
+    exJa: 'わたしは まいにち しゅくだいを する。',
+    tip: 'home（いえ）＋work（しごと）で「おうちでやること」＝しゅくだい！'
   },
   {
-    en: 'goes',
-    ja: 'いく（he/she/itのとき）',
-    ex: 'He goes to school.',
-    exJa: 'かれは 学校へ いくよ。',
-    tip: 'he・she・it のときは goに s がついて goes になるよ！'
+    en: 'study',
+    ja: 'べんきょうする',
+    ex: 'I study English.',
+    exJa: 'わたしは えいごを べんきょうする。',
+    tip: 'he/sheのときは studies になるよ！（yがiesになる）'
+  },
+  {
+    en: 'English',
+    ja: 'えいご',
+    ex: 'I like English.',
+    exJa: 'わたしは えいごが すき。',
+    tip: 'さいしょの E は いつも 大文字！'
   }
 ];
 
+// ═══ 大問1：三単現のs定着メイン ═══
 const challenges = [
   {
-    sentence: 'This box is ( ). I can\'t lift it.',
-    hint: 'この はこは おもい。もちあげられないよ。',
-    choices: ['heavy', 'small', 'old', 'cold'],
-    meanings: { heavy: 'おもい', small: 'ちいさい', old: 'ふるい', cold: 'さむい・つめたい' },
-    answer: 'heavy',
-    explanation: 'heavy（ヘビー）= おもい。lift は「もちあげる」。おもすぎて もちあげられない、って意味だよ。'
+    sentence: 'My mother ( ) breakfast at seven.',
+    hint: 'おかあさんは 7じに あさごはんを たべる。',
+    choices: ['eats', 'eat', 'drinks', 'reads'],
+    meanings: { eats: 'たべる(s)', eat: 'たべる', drinks: 'のむ(s)', reads: 'よむ(s)' },
+    answer: 'eats',
+    explanation: 'My mother は she だから eats（sがつく）！ breakfast（ブレックファスト）は あさごはんだよ。'
   },
   {
-    sentence: 'Kate ( ) milk every morning.',
-    hint: 'ケイトは まいあさ ミルクを のむよ。',
-    choices: ['drinks', 'eats', 'reads', 'sings'],
-    meanings: { drinks: 'のむ', eats: 'たべる', reads: 'よむ', sings: 'うたう' },
-    answer: 'drinks',
-    explanation: 'drink（ドリンク）= のむ。ミルクは のむ ものだね。Kate は she だから drinks と s がつくよ！'
+    sentence: 'Ken ( ) English every day.',
+    hint: 'ケンは まいにち えいごを べんきょうする。',
+    choices: ['studies', 'study', 'plays', 'goes'],
+    meanings: { studies: 'べんきょうする(s)', study: 'べんきょうする', plays: 'あそぶ(s)', goes: 'いく(s)' },
+    answer: 'studies',
+    explanation: 'Ken は he だから s がつく。study は yをiにかえて es をつけて studies になるよ！'
   },
   {
-    sentence: 'A: ( ) is that girl? B: She is my sister.',
-    hint: 'A: あの おんなのこは だれ？ B: わたしの いもうとだよ。',
-    choices: ['Who', 'Where', 'When', 'What'],
-    meanings: { Who: 'だれ', Where: 'どこ', When: 'いつ', What: 'なに' },
-    answer: 'Who',
-    explanation: 'Who（フー）= だれ。「わたしの いもうと」と ひとを こたえているから Who だよ。'
-  },
-  {
-    sentence: 'Tom ( ) to the park on Sundays.',
-    hint: 'トムは にちようびに こうえんへ いくよ。',
-    choices: ['goes', 'go', 'going', 'went'],
-    meanings: { goes: 'いく(s)', go: 'いく', going: 'いっている', went: 'いった' },
+    sentence: 'The student ( ) to school by bus.',
+    hint: 'その せいとは バスで 学校へ いく。',
+    choices: ['goes', 'go', 'going', 'came'],
+    meanings: { goes: 'いく(s)', go: 'いく', going: 'いっている', came: 'きた' },
     answer: 'goes',
-    explanation: 'Tom は he だから goes！ I/you/we は go、he/she/it は goes。これが「三単現のs」だよ。'
+    explanation: 'The student（1人）は he/she のなかまだから goes！ by bus は「バスで」だよ。'
+  },
+  {
+    sentence: 'I ( ) my homework after dinner.',
+    hint: 'わたしは ゆうしょくの あとに しゅくだいを する。',
+    choices: ['do', 'does', 'doing', 'went'],
+    meanings: { do: 'する', does: 'する(s)', doing: 'している', went: 'いった' },
+    answer: 'do',
+    explanation: 'I は「わたし」。 I のときは s は つかないよ！ he/she/it のときだけ does になる。'
+  }
+];
+
+// ═══ 大問2：会話文（新設）═══
+const conversations = [
+  {
+    a: "What's your name?",
+    aJa: 'おなまえは なんですか？',
+    b: '( ).',
+    hint: 'なまえを きかれたら、どう こたえる？',
+    choices: ['My name is Mika', 'Nice to meet you', "I'm from Japan", 'See you'],
+    meanings: {
+      'My name is Mika': 'わたしの なまえは ミカです',
+      'Nice to meet you': 'はじめまして',
+      "I'm from Japan": 'わたしは にほんから きました',
+      'See you': 'またね'
+    },
+    answer: 'My name is Mika',
+    explanation: '「なまえは？」と きかれたら「わたしの なまえは 〜」と こたえるよ。My name is ... のかたちを おぼえよう！'
+  },
+  {
+    a: 'How are you?',
+    aJa: 'げんき？',
+    b: '( ).',
+    hint: 'げんき？と きかれたら、どう こたえる？',
+    choices: ["I'm fine, thank you", 'Good morning', 'My name is Ken', "You're welcome"],
+    meanings: {
+      "I'm fine, thank you": 'げんきだよ、ありがとう',
+      'Good morning': 'おはよう',
+      'My name is Ken': 'わたしの なまえは ケン',
+      "You're welcome": 'どういたしまして'
+    },
+    answer: "I'm fine, thank you",
+    explanation: '「How are you?」は げんき？の あいさつ。「I\'m fine, thank you.」が おはなしの おきまりフレーズ！'
+  },
+  {
+    a: 'Is this your pencil?',
+    aJa: 'これは あなたの えんぴつ？',
+    b: 'Yes, ( ).',
+    hint: '「Is this 〜?」と きかれたら、Yesのあとは？',
+    choices: ['it is', 'I am', 'you are', 'they are'],
+    meanings: {
+      'it is': 'それは そうです',
+      'I am': 'わたしは',
+      'you are': 'あなたは',
+      'they are': 'かれらは'
+    },
+    answer: 'it is',
+    explanation: 'Is this 〜? = これは〜？と きかれたら、this を it におきかえて「Yes, it is.」／「No, it isn\'t.」と こたえるよ。'
   }
 ];
 
@@ -475,7 +574,7 @@ function loadFlash() {
   document.getElementById('flash-reveal-btn').classList.remove('hidden');
   document.getElementById('flash-next-btn').classList.add('hidden');
   document.getElementById('flash-progress').textContent = (flashIdx + 1) + ' / ' + flashCards.length;
-  setTimeout(() => speak(card.en), 250);
+  // 自動読み上げはしない（次に進んだ瞬間は読まない）
 }
 
 function speakFlash() {
@@ -488,7 +587,8 @@ function revealFlash() {
   document.getElementById('flash-card').classList.add('revealed');
   document.getElementById('flash-reveal-btn').classList.add('hidden');
   document.getElementById('flash-next-btn').classList.remove('hidden');
-  setTimeout(() => speak(flashCards[flashIdx].ex), 300);
+  // 答えを開いたタイミングで英単語を読み上げる
+  setTimeout(() => speak(flashCards[flashIdx].en), 200);
 }
 
 function nextFlash() {
@@ -501,7 +601,7 @@ function nextFlash() {
 }
 
 // ═══════════════════════════════════════
-//  ステージ2：チャレンジ
+//  ステージ2：大問1 チャレンジ
 // ═══════════════════════════════════════
 let chIdx = 0;
 let chScore = 0;
@@ -616,48 +716,184 @@ function replayChallenge() {
 function nextChallenge() {
   chIdx++;
   if (chIdx >= challenges.length) {
-    goToReward();
+    goToConv();
   } else {
     loadChallenge();
   }
 }
 
 // ═══════════════════════════════════════
-//  ステージ3：ごほうび
+//  ステージ3：大問2 会話文
 // ═══════════════════════════════════════
-function goToReward() {
+let cvIdx = 0;
+let cvScore = 0;
+let cvWaiting = false;
+
+function goToConv() {
   document.getElementById('stage-challenge').classList.add('hidden');
-  document.getElementById('stage-reward').classList.remove('hidden');
+  document.getElementById('stage-conv').classList.remove('hidden');
   document.getElementById('dot-challenge').classList.remove('active');
   document.getElementById('dot-challenge').classList.add('done');
+  document.getElementById('dot-conv').classList.add('active');
+  loadConv();
+}
+
+function loadConv() {
+  const q = conversations[cvIdx];
+  const box = document.getElementById('cv-box');
+  const bHtml = q.b.replace('( )', '<span class="q-blank">　　　</span>');
+  box.innerHTML =
+    '<div><span class="speaker">A:</span>' + q.a + '</div>' +
+    '<span class="conv-ja">（' + q.aJa + '）</span>' +
+    '<div style="margin-top:6px;"><span class="speaker speaker-b">B:</span>' + bHtml + '</div>';
+  document.getElementById('cv-hint').textContent = q.hint;
+  document.getElementById('cv-message').textContent = '';
+  document.getElementById('cv-message').style.color = '';
+  document.getElementById('cv-explain').classList.remove('show');
+  document.getElementById('cv-next-btn').classList.add('hidden');
+  document.getElementById('cv-replay-btn').classList.add('hidden');
+  document.getElementById('cv-progress').textContent =
+    (cvIdx + 1) + ' / ' + conversations.length + '　せいかい：' + cvScore;
+
+  const choicesEl = document.getElementById('cv-choices');
+  choicesEl.innerHTML = '';
+  q.choices.forEach(phrase => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.style.fontSize = '15px';
+    btn.textContent = phrase;
+    btn.onclick = () => selectConv(btn, phrase);
+    choicesEl.appendChild(btn);
+  });
+  cvWaiting = false;
+
+  // Aさんのセリフを読む（聞き取りの練習にもなる）
+  setTimeout(() => speak(q.a), 250);
+}
+
+function revealConvMeanings(q) {
+  document.querySelectorAll('#cv-choices .choice-btn').forEach(b => {
+    const phrase = b.childNodes[0].nodeValue || b.textContent;
+    if (q.meanings[phrase] && !b.querySelector('.choice-meaning')) {
+      const span = document.createElement('span');
+      span.className = 'choice-meaning';
+      span.textContent = q.meanings[phrase];
+      b.appendChild(span);
+    }
+  });
+  const exp = document.getElementById('cv-explain');
+  exp.innerHTML = '💡 ' + q.explanation;
+  exp.classList.add('show');
+}
+
+function selectConv(btn, phrase) {
+  if (cvWaiting) {
+    if (phrase === conversations[cvIdx].answer) {
+      btn.classList.remove('wrong');
+      btn.classList.add('correct');
+      document.getElementById('cv-message').textContent = '🌟 そう、これが せいかい！';
+      document.getElementById('cv-message').style.color = '#558B2F';
+      document.getElementById('cv-next-btn').classList.remove('hidden');
+      cvWaiting = false;
+      speakConvAnswer();
+    }
+    return;
+  }
+  const q = conversations[cvIdx];
+  const correct = phrase === q.answer;
+  const msg = document.getElementById('cv-message');
+
+  if (correct) {
+    cvScore++;
+    document.querySelectorAll('#cv-choices .choice-btn').forEach(b => {
+      b.disabled = true;
+      if (b.textContent === q.answer) b.classList.add('correct');
+    });
+    msg.textContent = '🎉 せいかい！すごい！';
+    msg.style.color = '#558B2F';
+    revealConvMeanings(q);
+    document.getElementById('cv-next-btn').classList.remove('hidden');
+    document.getElementById('cv-replay-btn').classList.remove('hidden');
+    speakConvAnswer();
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('#cv-choices .choice-btn').forEach(b => {
+      if (b.textContent === q.answer) {
+        b.classList.add('correct');
+      } else if (b.textContent !== phrase) {
+        b.disabled = true;
+      }
+    });
+    btn.disabled = true;
+    msg.textContent = '😢 ざんねん… せいかいをタップしてね！';
+    msg.style.color = '#C62828';
+    revealConvMeanings(q);
+    document.getElementById('cv-replay-btn').classList.remove('hidden');
+    cvWaiting = true;
+  }
+}
+
+function speakConvAnswer() {
+  const q = conversations[cvIdx];
+  const bFull = q.b.replace('( )', q.answer);
+  setTimeout(() => speak(q.a), 200);
+  setTimeout(() => speak(bFull), 1600);
+}
+
+function replayConv() {
+  speakConvAnswer();
+}
+
+function nextConv() {
+  cvIdx++;
+  if (cvIdx >= conversations.length) {
+    goToReward();
+  } else {
+    loadConv();
+  }
+}
+
+// ═══════════════════════════════════════
+//  ステージ4：ごほうび
+// ═══════════════════════════════════════
+function goToReward() {
+  document.getElementById('stage-conv').classList.add('hidden');
+  document.getElementById('stage-reward').classList.remove('hidden');
+  document.getElementById('dot-conv').classList.remove('active');
+  document.getElementById('dot-conv').classList.add('done');
   document.getElementById('dot-reward').classList.add('active');
 
-  const total = challenges.length;
-  document.getElementById('reward-score').textContent = chScore + ' / ' + total + ' せいかい！';
+  const totalCh = challenges.length;
+  const totalCv = conversations.length;
+  const total = totalCh + totalCv;
+  const score = chScore + cvScore;
+  document.getElementById('reward-score').textContent = score + ' / ' + total + ' せいかい！';
 
   let stars = '';
-  for (let i = 0; i < total; i++) stars += i < chScore ? '⭐' : '☆';
+  for (let i = 0; i < total; i++) stars += i < score ? '⭐' : '☆';
   document.getElementById('reward-stars').textContent = stars;
 
-  const msgs = [
-    'まだ はじめたばかり。まいにち つづけたら ぜったい のびるよ！',
-    'よくできたね！あと ちょっとで パーフェクトだったね。',
-    'すばらしい！むずかしい もんだいを よくがんばったね。',
-    'すごい！ほとんど せいかい！音羽ちゃんの ちから、のびてるね。',
-    'パーフェクト！！かんぺき！きょうの まちがいは もう だいじょうぶだね 🌸'
-  ];
-  document.getElementById('reward-msg').textContent = msgs[Math.min(chScore, msgs.length - 1)];
+  const rate = score / total;
+  let msg;
+  if (rate === 1) msg = 'パーフェクト！！かんぺき！きょうのもんだいは もう だいじょうぶだね 🌸';
+  else if (rate >= 0.85) msg = 'すごい！ほとんど せいかい！音羽ちゃんの ちから、のびてるね。';
+  else if (rate >= 0.7) msg = 'すばらしい！むずかしい もんだいを よくがんばったね。';
+  else if (rate >= 0.5) msg = 'よくできたね！まちがえた ところは また あしたやろう。';
+  else msg = 'まいにち つづけたら ぜったい のびるよ！';
+  document.getElementById('reward-msg').textContent = msg;
 
   // ログ保存
   try {
     const log = {
-      date: '2026-04-15',
+      date: '2026-04-17',
       flashCards: flashCards.map(c => c.en),
       challengeScore: chScore,
-      challengeTotal: total,
+      challengeTotal: totalCh,
+      conversationScore: cvScore,
+      conversationTotal: totalCv,
       timestamp: new Date().toISOString()
     };
-    localStorage.setItem('otowa_daily_2026-04-15', JSON.stringify(log));
+    localStorage.setItem('otowa_daily_2026-04-17', JSON.stringify(log));
   } catch (e) {}
 
   launchConfetti();
