@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="きょうの音羽">
 <meta name="theme-color" content="#FFF5F7">
-<title>4がつ18にち 音羽ちゃん専用</title>
+<title>4がつ20にち 音羽ちゃん専用</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
@@ -328,9 +328,9 @@
 <body>
 
 <div class="container">
-  <div class="date-badge">🌸 4<ruby>月<rt>がつ</rt></ruby>18<ruby>日<rt>にち</rt></ruby>（<ruby>土<rt>ど</rt></ruby>） 🌱</div>
+  <div class="date-badge">🌸 4<ruby>月<rt>がつ</rt></ruby>20<ruby>日<rt>にち</rt></ruby>（<ruby>月<rt>げつ</rt></ruby>） 🌱</div>
   <h1>きょうの<ruby>音羽<rt>おとわ</rt></ruby>ちゃんスペシャル</h1>
-  <div class="subtitle">きょうのテーマは「<ruby>疑問詞<rt>ぎもんし</rt></ruby>」と「<ruby>三単現<rt>さんたんげん</rt></ruby>のふくしゅう」！</div>
+  <div class="subtitle">きょうのテーマは「<ruby>疑問詞<rt>ぎもんし</rt></ruby>ファイブ！」 who / what / where / when / how</div>
 
   <div class="section-dots">
     <div class="dot active" id="dot-flash"></div>
@@ -342,7 +342,7 @@
   <!-- ═══ ステージ1：フラッシュカード ═══ -->
   <div id="stage-flash">
     <div class="stage-label">🌟 ステージ1：きょうの<ruby>単語<rt>たんご</rt></ruby>フラッシュ</div>
-    <div class="q-score" id="flash-progress">1 / 10</div>
+    <div class="q-score" id="flash-progress">1 / 5</div>
     <div class="flash-card" id="flash-card">
       <div class="flash-english" id="flash-en"></div>
       <div class="flash-ja" id="flash-ja"></div>
@@ -360,7 +360,7 @@
   <!-- ═══ ステージ2：大問1 チャレンジ ═══ -->
   <div id="stage-challenge" class="hidden">
     <div class="stage-label">🎯 ステージ2：<ruby>大問<rt>だいもん</rt></ruby>1（あなうめ）</div>
-    <div class="q-score" id="ch-progress">1 / 5　せいかい：0</div>
+    <div class="q-score" id="ch-progress">1 / 3　せいかい：0</div>
     <div class="q-hint" id="ch-hint"></div>
     <div class="q-sentence" id="ch-sentence"></div>
     <div class="choices" id="ch-choices"></div>
@@ -375,7 +375,7 @@
   <!-- ═══ ステージ3：大問2 会話文 ═══ -->
   <div id="stage-conv" class="hidden">
     <div class="stage-label">💬 ステージ3：<ruby>大問<rt>だいもん</rt></ruby>2（<ruby>会話文<rt>かいわぶん</rt></ruby>）</div>
-    <div class="q-score" id="cv-progress">1 / 3　せいかい：0</div>
+    <div class="q-score" id="cv-progress">1 / 2　せいかい：0</div>
     <div class="q-hint" id="cv-hint"></div>
     <div class="conv-box" id="cv-box"></div>
     <div class="choices" id="cv-choices"></div>
@@ -416,7 +416,7 @@
 
 <script>
 // ═══════════════════════════════════════
-//  データ：きょうの5単語＋大問1の4問＋大問2の3問
+//  データ：きょうの5単語（疑問詞ファイブ）＋大問1の3問＋大問2の2問
 // ═══════════════════════════════════════
 const flashCards = [
   {
@@ -431,7 +431,7 @@ const flashCards = [
     ja: 'なに',
     ex: 'What is this?',
     exJa: 'これは なに？',
-    tip: '「なに？」と きくときは What！ ものやことを きくことば。'
+    tip: '「なに？」と きくときは What！ ものや ことを きくことば。'
   },
   {
     en: 'where',
@@ -445,113 +445,47 @@ const flashCards = [
     ja: 'いつ',
     ex: 'When is your birthday?',
     exJa: 'あなたの たんじょうびは いつ？',
-    tip: '「いつ？」と きくときは When！ 時間を きくことば。'
+    tip: '「いつ？」と きくときは When！ 時間や 日づけを きくことば。'
   },
   {
-    en: 'drink',
-    ja: 'のむ',
-    ex: 'I drink milk every day.',
-    exJa: 'わたしは まいにち ぎゅうにゅうを のむ。',
-    tip: '「ドリンク」＝のみもの。のむ・のみもの どちらのいみでも つかうよ！'
-  },
-  {
-    en: 'eat',
-    ja: 'たべる',
-    ex: 'I eat an apple.',
-    exJa: 'わたしは りんごを たべる。',
-    tip: 'he/she のときは eats になるよ！ s が つく。'
-  },
-  {
-    en: 'read',
-    ja: 'よむ',
-    ex: 'I read a book.',
-    exJa: 'わたしは 本を よむ。',
-    tip: '読み方は「リード」。he/she のときは reads になるよ！'
-  },
-  {
-    en: 'heavy',
-    ja: 'おもい',
-    ex: 'This bag is heavy.',
-    exJa: 'この かばんは おもい。',
-    tip: 'ヘビーきゅう（重量級）って きいたことある？ おもいものを いう ことば！'
-  },
-  {
-    en: 'light',
-    ja: 'かるい・ひかり',
-    ex: 'The pen is light.',
-    exJa: 'この ペンは かるい。',
-    tip: 'ライトは「ひかり」のいみもあるよ。かるい⇔ heavy（おもい）の はんたい！'
-  },
-  {
-    en: 'big',
-    ja: 'おおきい',
-    ex: 'That dog is big.',
-    exJa: 'あの いぬは おおきい。',
-    tip: 'big ⇔ small（ちいさい）の はんたい。large ににてるけど、big のほうが よく つかう！'
+    en: 'how',
+    ja: 'どう・どうやって',
+    ex: 'How are you?',
+    exJa: 'げんき？（どんな ちょうし？）',
+    tip: '「どう？」と きくときは How！ げんき？の あいさつ「How are you?」でも つかうよ。'
   }
 ];
 
-// ═══ 大問1：疑問詞＋三単現の復習 ═══
+// ═══ 大問1：疑問詞メイン＋三単現の復習 ═══
 const challenges = [
   {
-    sentence: '( ) is your English teacher?',
-    hint: 'あなたの えいごの先生は だれ？',
-    choices: ['Who', 'Where', 'When', 'What'],
-    meanings: { Who: 'だれ', Where: 'どこ', When: 'いつ', What: 'なに' },
-    answer: 'Who',
-    explanation: '「先生は ＿＿？」と「人」をきいているから Who（だれ）！ 人をきくときは Who を つかうよ。'
+    sentence: '( ) is this?',
+    hint: 'これは なに？',
+    choices: ['What', 'Who', 'Where', 'How'],
+    meanings: { What: 'なに', Who: 'だれ', Where: 'どこ', How: 'どう' },
+    answer: 'What',
+    explanation: '「これは ＿＿？」で「もの」を きいているから What（なに）！ 人をきくのは Who、ばしょは Where だよ。'
   },
   {
-    sentence: 'A: ( ) do you live? B: I live in Tokyo.',
-    hint: 'A: どこに すんでいるの？ B: とうきょうに すんでいるよ。',
-    choices: ['Where', 'Who', 'When', 'How'],
-    meanings: { Where: 'どこ', Who: 'だれ', When: 'いつ', How: 'どうやって' },
-    answer: 'Where',
-    explanation: 'B が「in Tokyo（とうきょうで）」と ばしょを こたえているね。だから A は「どこ？」＝ Where！'
+    sentence: 'A: ( ) are you? B: I\'m fine, thank you.',
+    hint: 'A: げんき？ B: うん、げんきだよ、ありがとう。',
+    choices: ['How', 'What', 'When', 'Who'],
+    meanings: { How: 'どう', What: 'なに', When: 'いつ', Who: 'だれ' },
+    answer: 'How',
+    explanation: '「How are you?」は「げんき？どんな ちょうし？」と きく おきまりフレーズ。How は「どう？」をきく ことばだよ。'
   },
   {
-    sentence: 'Mike ( ) to school by bus.',
-    hint: 'マイクは バスで がっこうへ いく。',
-    choices: ['goes', 'go', 'going', 'went'],
-    meanings: { goes: 'いく(s)', go: 'いく', going: 'いっている', went: 'いった（むかし）' },
+    sentence: 'Ken ( ) to school by bus.',
+    hint: 'ケンは バスで がっこうへ いく。',
+    choices: ['goes', 'go', 'going', 'came'],
+    meanings: { goes: 'いく(s)', go: 'いく', going: 'いっている', came: 'きた（むかし）' },
     answer: 'goes',
-    explanation: 'Mike は he のなかま（1人）だから、go に s／es が つくよ。go は goes！（o や s でおわる動詞は es）'
-  },
-  {
-    sentence: 'My father ( ) the newspaper every morning.',
-    hint: 'お父さんは まいあさ しんぶんを よむ。',
-    choices: ['reads', 'read', 'reading', 'is'],
-    meanings: { reads: 'よむ(s)', read: 'よむ', reading: 'よんでいる', is: 'です' },
-    answer: 'reads',
-    explanation: 'My father は he だから read に s がつく＝ reads！ every morning（まいあさ）は「いつもすること」の合図。'
-  },
-  {
-    sentence: 'This box is ( ). I can\'t carry it.',
-    hint: 'この はこは おもい。運べないよ。',
-    choices: ['heavy', 'light', 'small', 'new'],
-    meanings: { heavy: 'おもい', light: 'かるい', small: 'ちいさい', new: 'あたらしい' },
-    answer: 'heavy',
-    explanation: '「運べない（can\'t carry）」とあるから おもい＝ heavy！ light（かるい）は はんたいの ことばだよ。'
+    explanation: 'Ken は he のなかま（1人）だから go に es がついて goes！ o でおわる動詞は es が つくよ。'
   }
 ];
 
-// ═══ 大問2：会話文（疑問詞メイン）═══
+// ═══ 大問2：会話文（疑問詞への返答）═══
 const conversations = [
-  {
-    a: 'When is your birthday?',
-    aJa: 'たんじょうびは いつ？',
-    b: '( ).',
-    hint: 'When（いつ？）と きかれたら、どう こたえる？',
-    choices: ["It's May 27th", "I'm fine", 'My name is Ken', 'See you'],
-    meanings: {
-      "It's May 27th": '5月27日だよ',
-      "I'm fine": 'げんきだよ',
-      'My name is Ken': 'わたしの なまえは ケン',
-      'See you': 'またね'
-    },
-    answer: "It's May 27th",
-    explanation: 'When（いつ？）は 時間や 日づけを きく ことば。だから こたえは 日づけ！ May は 5月、27th は 27にちだよ。'
-  },
   {
     a: 'Where are you from?',
     aJa: 'どこから きたの？',
@@ -568,19 +502,19 @@ const conversations = [
     explanation: 'Where are you from? は「どこから きたの？」と 出身地（しゅっしんち）を きく ひょうげん。こたえは from 〜（〜から）！'
   },
   {
-    a: 'Who is that girl?',
-    aJa: 'あの 女の子は だれ？',
+    a: 'When is your birthday?',
+    aJa: 'たんじょうびは いつ？',
     b: '( ).',
-    hint: 'Who（だれ？）と きかれたら、どう こたえる？',
-    choices: ['She is my sister', "It's a pen", 'Yes, I do', 'In the park'],
+    hint: 'When（いつ？）と きかれたら、どう こたえる？',
+    choices: ["It's May 27th", "I'm fine", 'My name is Ken', 'See you'],
     meanings: {
-      'She is my sister': 'かのじょは わたしの いもうと',
-      "It's a pen": 'ペンだよ',
-      'Yes, I do': 'うん、そうだよ',
-      'In the park': 'こうえんで'
+      "It's May 27th": '5月27日だよ',
+      "I'm fine": 'げんきだよ',
+      'My name is Ken': 'わたしの なまえは ケン',
+      'See you': 'またね'
     },
-    answer: 'She is my sister',
-    explanation: 'Who（だれ？）は「人」を きくから、こたえは その人を しょうかいする かたち！ 女の子は She（かのじょ）で うけるよ。'
+    answer: "It's May 27th",
+    explanation: 'When（いつ？）は 時間や 日づけを きく ことば。こたえは 日づけ！ May は 5月、27th は 27にち。5/27 は えいけんの 日だね🌸'
   }
 ];
 
@@ -953,7 +887,7 @@ function goToReward() {
   // ログ保存
   try {
     const log = {
-      date: '2026-04-16',
+      date: '2026-04-20',
       flashCards: flashCards.map(c => c.en),
       challengeScore: chScore,
       challengeTotal: totalCh,
@@ -961,7 +895,7 @@ function goToReward() {
       conversationTotal: totalCv,
       timestamp: new Date().toISOString()
     };
-    localStorage.setItem('otowa_daily_2026-04-16', JSON.stringify(log));
+    localStorage.setItem('otowa_daily_2026-04-20', JSON.stringify(log));
   } catch (e) {}
 
   populateLogTextarea();
@@ -1013,7 +947,7 @@ function downloadLog() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'eiken5-log-2026-04-16.json';
+  a.download = 'eiken5-log-2026-04-20.json';
   document.body.appendChild(a);
   a.click();
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
