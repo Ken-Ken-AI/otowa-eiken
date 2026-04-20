@@ -323,9 +323,43 @@
   @keyframes fall { to { top: 110vh; transform: rotate(720deg); } }
 
   .hidden { display: none !important; }
+
+  /* ══ 共通ナビ（3ページ共通） ══ */
+  .otowa-nav {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    max-width: 600px;
+    margin: 0 auto 10px;
+    padding: 6px;
+    background: rgba(255,255,255,0.9);
+    border: 2px solid var(--sakura);
+    border-radius: 16px;
+    box-shadow: 0 3px 0 var(--sakura-shadow);
+  }
+  .otowa-nav a, .otowa-nav .here {
+    flex: 1;
+    text-align: center;
+    padding: 8px 6px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 12px;
+    text-decoration: none;
+    font-family: 'Zen Maru Gothic', sans-serif;
+    touch-action: manipulation;
+  }
+  .otowa-nav a { background: #FFF0F5; color: var(--sakura-deep); border: 2px solid var(--sakura-shadow); }
+  .otowa-nav a:active { background: var(--sakura); color: #fff; }
+  .otowa-nav .here { background: var(--leaf-deep); color: #fff; border: 2px solid var(--leaf-deep); cursor: default; }
 </style>
 </head>
 <body>
+
+<nav class="otowa-nav">
+  <span class="here">🏠 きょう</span>
+  <a href="index.html">📖 トレイン</a>
+  <a href="collection.html">🗂️ ずかん</a>
+</nav>
 
 <div class="container">
   <div class="date-badge">🌸 4<ruby>月<rt>がつ</rt></ruby>20<ruby>日<rt>にち</rt></ruby>（<ruby>月<rt>げつ</rt></ruby>） 🌱</div>

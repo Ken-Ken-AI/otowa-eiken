@@ -37,6 +37,34 @@
       touch-action: manipulation;
     }
 
+    /* ─── 共通ナビ（3ページ共通） ─── */
+    .otowa-nav {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      max-width: 600px;
+      margin: 0 auto 10px;
+      padding: 6px;
+      background: rgba(255,255,255,0.9);
+      border: 2px solid #FFCDD2;
+      border-radius: 16px;
+      box-shadow: 0 3px 0 #FFCDD2;
+    }
+    .otowa-nav a, .otowa-nav .here {
+      flex: 1;
+      text-align: center;
+      padding: 8px 6px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 12px;
+      text-decoration: none;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      touch-action: manipulation;
+    }
+    .otowa-nav a { background: #FFF0F5; color: #AD1457; border: 2px solid #FFCDD2; }
+    .otowa-nav a:active { background: var(--primary-color); color: #fff; }
+    .otowa-nav .here { background: var(--success); color: #fff; border: 2px solid var(--success); cursor: default; }
+
     /* ─── タブバー ─── */
     .tab-bar {
       display: flex;
@@ -339,6 +367,13 @@
 </head>
 <body>
 
+  <!-- 共通ナビ -->
+  <nav class="otowa-nav">
+    <a href="today.html">🏠 きょう</a>
+    <span class="here">📖 トレイン</span>
+    <a href="collection.html">🗂️ ずかん</a>
+  </nav>
+
   <!-- タブバー -->
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('vocab')">📖 <ruby>単語<rt>たんご</rt></ruby></button>
@@ -349,7 +384,6 @@
 
   <!-- データ操作バー -->
   <div class="data-bar">
-    <a href="collection.html" style="font-size:13px; font-weight:700; color:#AD1457; background:#FFF0F5; padding:6px 14px; border-radius:14px; border:2px solid #FFB7C5; text-decoration:none; margin-right:6px;">🗂️ <ruby>単語<rt>たんご</rt></ruby>ずかん</a>
     <button class="btn-reset" onclick="exportAnswerLog()" style="font-size:12px;">📊 データをダウンロード</button>
     <button class="btn-reset" onclick="resetAnswerLog()" style="font-size:11px;margin-left:4px;">🗑️ データリセット</button>
   </div>
