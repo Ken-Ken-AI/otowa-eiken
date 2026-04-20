@@ -349,6 +349,7 @@
 
   <!-- データ操作バー -->
   <div class="data-bar">
+    <a href="collection.html" style="font-size:13px; font-weight:700; color:#AD1457; background:#FFF0F5; padding:6px 14px; border-radius:14px; border:2px solid #FFB7C5; text-decoration:none; margin-right:6px;">🗂️ <ruby>単語<rt>たんご</rt></ruby>ずかん</a>
     <button class="btn-reset" onclick="exportAnswerLog()" style="font-size:12px;">📊 データをダウンロード</button>
     <button class="btn-reset" onclick="resetAnswerLog()" style="font-size:11px;margin-left:4px;">🗑️ データリセット</button>
   </div>
@@ -481,6 +482,67 @@
   </div>
 
   <script>
+    // ══════════════════════════════════════════════
+    //  単語ずかん ヘルパー（共通）
+    // ══════════════════════════════════════════════
+    window.otowaCollection = (function() {
+      const KEY = 'otowa_word_collection';
+      function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) { return {}; } }
+      function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch(e) {} }
+      function norm(en) { return String(en || '').trim().toLowerCase(); }
+      function today() { return new Date().toISOString().slice(0, 10); }
+      function stripHtml(s) { return String(s || '').replace(/<rt>[^<]*<\/rt>/g, '').replace(/<[^>]+>/g, ''); }
+      return {
+        addWord(en, meta) {
+          if (!en) return;
+          const data = load();
+          const key = norm(en);
+          const ja = stripHtml((meta && meta.ja) || '');
+          const ex = (meta && meta.ex) || '';
+          const exJa = (meta && meta.exJa) || '';
+          if (!data[key]) {
+            data[key] = {
+              en: String(en).trim(),
+              ja: ja,
+              ex: ex,
+              exJa: exJa,
+              learned_at: today(),
+              mastery: 0,
+              perfectDays: []
+            };
+          } else {
+            if (ja && !data[key].ja) data[key].ja = ja;
+            if (ex && !data[key].ex) data[key].ex = ex;
+            if (exJa && !data[key].exJa) data[key].exJa = exJa;
+          }
+          save(data);
+        },
+        incMastery(en) {
+          if (!en) return;
+          const data = load();
+          const key = norm(en);
+          if (!data[key]) {
+            data[key] = { en: String(en).trim(), ja: '', ex: '', exJa: '', learned_at: today(), mastery: 0, perfectDays: [] };
+          }
+          data[key].mastery = (data[key].mastery || 0) + 1;
+          save(data);
+        },
+        markPerfectDay(words, date) {
+          if (!Array.isArray(words)) return;
+          const d = date || today();
+          const data = load();
+          words.forEach(en => {
+            const key = norm(en);
+            if (!data[key]) return;
+            data[key].perfectDays = data[key].perfectDays || [];
+            if (!data[key].perfectDays.includes(d)) data[key].perfectDays.push(d);
+          });
+          save(data);
+        },
+        count() { return Object.keys(load()).length; }
+      };
+    })();
+
     // ══════════════════════════════════════════════
     //  音声：最良の英語音声を自動選択
     // ══════════════════════════════════════════════
@@ -1002,8 +1064,13 @@
       if (ok) {
         vocabSessionOk++;
         saveLearnedWord(card.english);
+        // ずかんに追加＋マスタリー加算
+        otowaCollection.addWord(card.english, { ja: card.japanese, ex: card.example });
+        otowaCollection.incMastery(card.english);
       } else {
         vocabRetry.push(card);
+        // まだ覚えていない語も「出会った」記録として追加（mastery=0）
+        otowaCollection.addWord(card.english, { ja: card.japanese, ex: card.example });
       }
       vocabCurrentIndex++;
       showVocabCard();
@@ -1247,6 +1314,13 @@
       const msg = document.getElementById('q1-message');
       if (correct) {
         q1SetScore++;
+        // ずかんに正解単語のマスタリーを加算（一発正解のみ）
+        if (!q1IsRetry) {
+          const meanings_ = currentQ1.choicesMeaning || {};
+          const fullSent_ = (currentQ1.sentence || '').replace('( )', currentQ1.answer);
+          otowaCollection.addWord(currentQ1.answer, { ja: meanings_[currentQ1.answer] || '', ex: fullSent_ });
+          otowaCollection.incMastery(currentQ1.answer);
+        }
         const meanings = currentQ1.choicesMeaning || {};
         document.querySelectorAll('#q1-choices .choice-btn').forEach(b => {
           b.disabled = true;
@@ -1443,6 +1517,7 @@
       const msg = document.getElementById('q2-message');
       if (correct) {
         q2SetScore++;
+        // Q2 は会話文フレーズが答えなので、ずかんには追加しない
         document.querySelectorAll('#q2-choices .choice-btn').forEach(b => {
           b.disabled = true;
           if (b.innerText === currentQ2.answer) b.classList.add('correct');

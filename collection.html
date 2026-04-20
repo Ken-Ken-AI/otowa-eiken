@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="単語ずかん">
+<meta name="theme-color" content="#FFF5F7">
+<title>音羽ちゃんの 単語ずかん</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sakura: #FFB7C5;
+    --sakura-deep: #EC407A;
+    --sakura-shadow: #F8BBD0;
+    --leaf: #AED581;
+    --leaf-deep: #7CB342;
+    --leaf-shadow: #C5E1A5;
+    --bg: #FFF5F7;
+    --text: #4E342E;
+    --cream: #FFFDE7;
+    --sky: #B3E5FC;
+    --gold: #FFD54F;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
+    background: var(--bg);
+    background-image:
+      radial-gradient(var(--sakura-shadow) 14%, transparent 15%),
+      radial-gradient(var(--leaf-shadow) 14%, transparent 15%);
+    background-size: 44px 44px;
+    background-position: 0 0, 22px 22px;
+    color: var(--text);
+    margin: 0;
+    padding: 12px 14px 40px;
+    touch-action: manipulation;
+  }
+  ruby { ruby-align: center; }
+  rt { font-size: 10px; color: #8D6E63; }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.96);
+    padding: 18px 16px 24px;
+    border-radius: 28px;
+    border: 4px solid var(--sakura);
+    box-shadow: 0 10px 24px rgba(236,64,122,0.18);
+  }
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .back-btn {
+    background: var(--sky);
+    color: #01579B;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    border: 2px solid #81D4FA;
+  }
+  h1 {
+    font-size: 22px;
+    color: var(--sakura-deep);
+    margin: 2px 0;
+    text-shadow: 2px 2px 0 var(--leaf-shadow);
+    text-align: center;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--leaf-deep);
+    text-align: center;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+
+  .summary {
+    background: linear-gradient(135deg, #FFF8FB, #F1F8E9);
+    border: 3px dashed var(--sakura);
+    border-radius: 18px;
+    padding: 12px;
+    margin: 8px auto 16px;
+    text-align: center;
+  }
+  .summary .big {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--sakura-deep);
+    line-height: 1.1;
+  }
+  .summary .sub {
+    font-size: 13px;
+    color: var(--leaf-deep);
+    margin-top: 4px;
+  }
+
+  .empty-msg {
+    text-align: center;
+    padding: 30px 20px;
+    color: #8D6E63;
+    font-size: 15px;
+    line-height: 1.8;
+  }
+  .empty-msg .big-emoji {
+    font-size: 60px;
+    display: block;
+    margin-bottom: 12px;
+  }
+  .empty-msg a {
+    color: var(--sakura-deep);
+    font-weight: 700;
+  }
+
+  .category {
+    margin: 16px 0;
+  }
+  .cat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #FFF8FB, #F1F8E9);
+    border: 3px solid var(--leaf);
+    border-radius: 16px;
+    padding: 8px 14px;
+    margin-bottom: 8px;
+  }
+  .cat-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--leaf-deep);
+  }
+  .cat-count {
+    font-size: 13px;
+    color: #8D6E63;
+    font-weight: 700;
+  }
+
+  .word-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+  }
+  .word-card {
+    background: #fff;
+    border: 3px solid var(--sakura);
+    border-radius: 14px;
+    padding: 10px 8px;
+    text-align: center;
+    box-shadow: 0 3px 0 var(--sakura-shadow);
+    position: relative;
+  }
+  .word-card.trophy {
+    background: linear-gradient(135deg, #FFFDE7, #FFF9C4);
+    border-color: var(--gold);
+    box-shadow: 0 3px 0 #FFB300;
+  }
+  .word-emoji {
+    font-size: 30px;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+  .word-en {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--sakura-deep);
+    word-break: break-word;
+  }
+  .word-ja {
+    font-size: 12px;
+    color: var(--leaf-deep);
+    margin: 2px 0;
+    word-break: break-word;
+  }
+  .word-stars {
+    font-size: 13px;
+    color: #FFB300;
+    letter-spacing: 1px;
+    min-height: 16px;
+  }
+  .word-trophy {
+    position: absolute;
+    top: -8px;
+    right: -6px;
+    font-size: 22px;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+  }
+  .word-date {
+    font-size: 10px;
+    color: #9E9E9E;
+    margin-top: 2px;
+  }
+
+  details.word-detail {
+    margin-top: 4px;
+  }
+  details.word-detail summary {
+    font-size: 10px;
+    color: #757575;
+    cursor: pointer;
+    list-style: none;
+  }
+  details.word-detail summary::-webkit-details-marker { display: none; }
+  details.word-detail[open] summary { color: var(--sakura-deep); }
+  .word-ex {
+    font-size: 11px;
+    font-style: italic;
+    color: #6D4C41;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+  .word-ex-ja {
+    font-size: 10px;
+    color: #8D6E63;
+  }
+
+  .mastery-legend {
+    background: var(--cream);
+    border: 2px dashed #FFD54F;
+    border-radius: 14px;
+    padding: 10px 14px;
+    margin: 18px 0 8px;
+    font-size: 12px;
+    color: #6D4C41;
+    line-height: 1.8;
+  }
+  .mastery-legend strong { color: var(--sakura-deep); }
+
+  .danger {
+    margin-top: 24px;
+    text-align: center;
+  }
+  .danger summary {
+    font-size: 11px;
+    color: #BDBDBD;
+    cursor: pointer;
+  }
+  .danger button {
+    font-family: inherit;
+    font-size: 12px;
+    padding: 6px 12px;
+    background: #EF5350;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    margin-top: 6px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="topbar">
+    <a class="back-btn" href="index.html">← もどる</a>
+    <div style="font-size:12px;color:#8D6E63;">🗂️ ずかん</div>
+  </div>
+  <h1>🗂️ <ruby>音羽<rt>おとわ</rt></ruby>ちゃんの <ruby>単語<rt>たんご</rt></ruby>ずかん</h1>
+  <div class="subtitle">あつめた<ruby>単語<rt>たんご</rt></ruby>が ここに ならぶよ 🌸</div>
+
+  <div class="summary">
+    <div class="big" id="summary-count">0</div>
+    <div class="sub">あつめた<ruby>単語<rt>たんご</rt></ruby>の かず</div>
+    <div class="sub" id="summary-stars" style="margin-top:4px;">⭐ まだ スタートしたばかり</div>
+  </div>
+
+  <div id="content"></div>
+
+  <div class="mastery-legend">
+    <div><strong>⭐ のかず</strong>：せいかいした かず（1かい→⭐、3かい→⭐⭐、5かい→⭐⭐⭐、10かい→⭐⭐⭐⭐）</div>
+    <div><strong>🏆 スタンプ</strong>：その日 <ruby>全問正解<rt>ぜんもんせいかい</rt></ruby>した日に つく しるし</div>
+  </div>
+
+  <details class="danger">
+    <summary>🔧 こうげき：ずかんを リセット（ほごしゃむけ）</summary>
+    <button onclick="resetCollection()">ぜんぶ けす</button>
+  </details>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  データ
+// ═══════════════════════════════════════
+const KEY = 'otowa_word_collection';
+
+function loadCollection() {
+  try { return JSON.parse(localStorage.getItem(KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+
+// テーマ別カテゴリ定義（表示順）
+const CATEGORIES = [
+  {
+    id: 'question', label: '疑問詞', emoji: '❓',
+    words: ['who','what','where','when','why','how','which','whose']
+  },
+  {
+    id: 'family', label: '家族', emoji: '👨‍👩‍👧',
+    words: ['mother','father','brother','sister','aunt','uncle','grandmother','grandfather','grandma','grandpa','family','son','daughter','baby','parent']
+  },
+  {
+    id: 'animal', label: 'どうぶつ', emoji: '🐾',
+    words: ['dog','cat','bird','fish','rabbit','horse','elephant','tiger','lion','panda','mouse','pig','cow','sheep','bear','monkey','animal','pet','duck','frog']
+  },
+  {
+    id: 'food', label: 'たべもの・のみもの', emoji: '🍎',
+    words: ['apple','orange','banana','rice','bread','water','juice','milk','soup','chocolate','cake','egg','meat','tea','coffee','pizza','hamburger','cookie','candy','sugar','salt','food','lunch','breakfast','dinner','drink']
+  },
+  {
+    id: 'school', label: '学校・べんきょう', emoji: '🏫',
+    words: ['school','teacher','friend','book','pen','pencil','desk','chair','bag','ball','notebook','test','library','history','student','math','english','class','homework','board']
+  },
+  {
+    id: 'color', label: '色', emoji: '🎨',
+    words: ['red','blue','green','yellow','black','white','pink','brown','purple','color','colors']
+  },
+  {
+    id: 'day', label: 'ようび・じかん', emoji: '📅',
+    words: ['sunday','monday','tuesday','wednesday','thursday','friday','saturday','day','week','month','year','today','morning','evening','night','afternoon','tomorrow','yesterday','now']
+  },
+  {
+    id: 'verb', label: 'どうし（うごき）', emoji: '🏃',
+    words: ['go','goes','went','come','comes','came','play','plays','eat','eats','ate','drink','drinks','drank','read','reads','write','writes','study','studies','watch','watches','run','runs','swim','swims','walk','walks','sing','sings','dance','like','likes','have','has','had','make','makes','help','helps','see','sees','know','knows','live','lives','sleep','get','gets','give','gives','speak','speaks','listen','listens','want','wants','use','uses','open','opens','close','closes','cook','cooks','buy','buys','sit','sits','stand','stands','look','looks','jump','jumps','need','needs','say','says','do','does','take','takes','teach','teaches','put','puts','bring','brings','think','thinks','wash','washes','clean','cleans','ride','rides','stop','stops','start','starts','work','works','begin','begins','try','tries','fly','flies','find','finds']
+  },
+  {
+    id: 'adj', label: 'ようす（形容詞）', emoji: '✨',
+    words: ['big','small','tall','short','young','old','new','good','bad','happy','hot','cold','sunny','rainy','cloudy','snowy','fast','slow','easy','difficult','hard','cute','kind','beautiful','heavy','light','large','fine','ready','nice','great','cool','warm','clean','dirty','full','empty','busy','tired','hungry','thirsty','sleepy','angry','sad','interesting','important','famous','free']
+  },
+  {
+    id: 'body', label: 'からだ', emoji: '👀',
+    words: ['head','face','eye','eyes','nose','mouth','ear','ears','hand','hands','foot','feet','leg','legs','arm','arms','hair','body','finger','tooth','teeth']
+  },
+  {
+    id: 'place', label: 'ばしょ・たてもの', emoji: '🏠',
+    words: ['house','room','park','library','city','town','country','station','shop','store','hospital','post','bank','kitchen','garden','zoo','station','airport','restaurant','hotel']
+  },
+  {
+    id: 'sport', label: 'スポーツ・おんがく', emoji: '⚽',
+    words: ['soccer','tennis','baseball','basketball','swimming','piano','guitar','violin','music','sport','sports','song','dance','game','team']
+  },
+  {
+    id: 'number', label: 'かず', emoji: '🔢',
+    words: ['one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','twenty','thirty','hundred','first','second','third']
+  },
+  {
+    id: 'other', label: 'その他', emoji: '💬',
+    words: [] // マッチしなかったものがここに入る
+  }
+];
+
+function findCategory(en) {
+  const low = String(en || '').trim().toLowerCase();
+  for (const cat of CATEGORIES) {
+    if (cat.words.includes(low)) return cat;
+  }
+  return CATEGORIES[CATEGORIES.length - 1]; // other
+}
+
+// 単語→絵文字（代表的なものだけ個別指定）
+const WORD_EMOJI = {
+  who: '👤', what: '❓', where: '📍', when: '⏰', why: '🤔', how: '🧭', which: '🔀',
+  mother: '👩', father: '👨', brother: '👦', sister: '👧', aunt: '👩‍🦰', uncle: '👨‍🦰',
+  grandmother: '👵', grandfather: '👴', family: '👨‍👩‍👧',
+  dog: '🐶', cat: '🐱', bird: '🐦', fish: '🐟', rabbit: '🐰', horse: '🐴',
+  elephant: '🐘', tiger: '🐯', lion: '🦁', panda: '🐼', mouse: '🐭',
+  pig: '🐷', cow: '🐮', sheep: '🐑', bear: '🐻', monkey: '🐵', animal: '🐾',
+  apple: '🍎', orange: '🍊', banana: '🍌', rice: '🍚', bread: '🍞',
+  water: '💧', juice: '🧃', milk: '🥛', soup: '🍲', chocolate: '🍫',
+  cake: '🍰', egg: '🥚', meat: '🍖', tea: '🍵', coffee: '☕',
+  pizza: '🍕', hamburger: '🍔', cookie: '🍪', candy: '🍬',
+  food: '🍱', lunch: '🍱', breakfast: '🥞', dinner: '🍽️', drink: '🥤',
+  school: '🏫', teacher: '👩‍🏫', friend: '👭', book: '📕', pen: '🖊️',
+  pencil: '✏️', desk: '🪑', chair: '💺', bag: '🎒', ball: '⚽',
+  notebook: '📓', test: '📝', library: '📚', history: '📜', student: '👧',
+  red: '🔴', blue: '🔵', green: '🟢', yellow: '🟡', black: '⚫', white: '⚪',
+  pink: '🌸', brown: '🟤', purple: '🟣', color: '🎨',
+  sunday: '☀️', monday: '🌙', tuesday: '🔥', wednesday: '💧', thursday: '🌳',
+  friday: '⭐', saturday: '🪐', day: '📅', week: '🗓️', month: '📆', year: '🎍',
+  today: '📍', morning: '🌅', evening: '🌇', night: '🌙',
+  go: '🚶', goes: '🚶', come: '👋', play: '🎮', eat: '🍴', drink_v: '🥛',
+  read: '📖', write: '✍️', study: '📚', watch: '📺', run: '🏃', swim: '🏊',
+  walk: '🚶', sing: '🎤', dance: '💃', like: '❤️', have: '🫴',
+  make: '🛠️', help: '🤝', see: '👀', know: '💡', live: '🏠',
+  sleep: '😴', get: '🎁', give: '🎁', speak: '🗣️', listen: '👂',
+  want: '🙏', use: '🔧', open: '🚪', close: '🔒', cook: '🍳',
+  buy: '🛍️', sit: '🪑', stand: '🧍', look: '👀', jump: '🦘',
+  need: '🙏', say: '💬', do: '✅', take: '✋', teach: '👩‍🏫',
+  big: '🐘', small: '🐭', tall: '🦒', short: '📏', young: '👶',
+  old: '👴', new: '✨', good: '👍', bad: '👎', happy: '😊',
+  hot: '🔥', cold: '❄️', sunny: '☀️', rainy: '🌧️', cloudy: '☁️', snowy: '❄️',
+  fast: '⚡', slow: '🐢', easy: '😄', cute: '🥰', kind: '💖',
+  beautiful: '🌸', heavy: '🏋️', light: '💡', large: '🐘', fine: '😊',
+  ready: '🏁', nice: '😊', great: '🌟', cool: '😎', warm: '🧣',
+  head: '🗿', face: '😀', eye: '👁️', nose: '👃', mouth: '👄',
+  ear: '👂', hand: '✋', foot: '🦶', leg: '🦵', arm: '💪', hair: '💇',
+  house: '🏠', room: '🚪', park: '🌳', city: '🏙️', town: '🏘️',
+  kitchen: '🍳', garden: '🌼', zoo: '🦁',
+  soccer: '⚽', tennis: '🎾', baseball: '⚾', basketball: '🏀',
+  piano: '🎹', guitar: '🎸', music: '🎵', song: '🎶', game: '🎮',
+  one: '1️⃣', two: '2️⃣', three: '3️⃣', four: '4️⃣', five: '5️⃣',
+  six: '6️⃣', seven: '7️⃣', eight: '8️⃣', nine: '9️⃣', ten: '🔟',
+  bike: '🚲', bus: '🚌', car: '🚗', train: '🚆', airplane: '✈️',
+  flower: '🌼', tree: '🌳', sun: '☀️', moon: '🌙', star: '⭐'
+};
+
+function getEmoji(en) {
+  const low = String(en || '').trim().toLowerCase();
+  if (WORD_EMOJI[low]) return WORD_EMOJI[low];
+  const cat = findCategory(en);
+  return cat.emoji;
+}
+
+function starsFor(mastery) {
+  if (mastery >= 10) return '⭐⭐⭐⭐';
+  if (mastery >= 5) return '⭐⭐⭐';
+  if (mastery >= 3) return '⭐⭐';
+  if (mastery >= 1) return '⭐';
+  return '';
+}
+
+// ═══════════════════════════════════════
+//  描画
+// ═══════════════════════════════════════
+function render() {
+  const data = loadCollection();
+  const keys = Object.keys(data);
+  const content = document.getElementById('content');
+
+  // サマリー更新
+  document.getElementById('summary-count').textContent = keys.length;
+  let totalMastery = 0;
+  let trophyDays = new Set();
+  keys.forEach(k => {
+    totalMastery += (data[k].mastery || 0);
+    (data[k].perfectDays || []).forEach(d => trophyDays.add(d));
+  });
+  const subEl = document.getElementById('summary-stars');
+  if (keys.length === 0) {
+    subEl.textContent = '⭐ まだ スタートしたばかり';
+  } else {
+    subEl.innerHTML =
+      '⭐ ぜんぶで ' + totalMastery + ' かい せいかい ／ 🏆 ' + trophyDays.size + '日 パーフェクト！';
+  }
+
+  // 空状態
+  if (keys.length === 0) {
+    content.innerHTML =
+      '<div class="empty-msg">' +
+      '<span class="big-emoji">🌱</span>' +
+      'まだ <ruby>単語<rt>たんご</rt></ruby>が はいっていないよ。<br>' +
+      '<a href="today.html">きょうのアプリ</a>や' +
+      '<a href="index.html">えいごトレイン</a>で<br>' +
+      '<ruby>単語<rt>たんご</rt></ruby>を まなぶと ここに あつまるよ 🌸' +
+      '</div>';
+    return;
+  }
+
+  // カテゴリーにマッピング
+  const byCat = {};
+  CATEGORIES.forEach(c => byCat[c.id] = []);
+  keys.forEach(k => {
+    const word = data[k];
+    const cat = findCategory(word.en || k);
+    byCat[cat.id].push(word);
+  });
+
+  // 各カテゴリー内でマスタリー順→アルファベット順に並べる
+  CATEGORIES.forEach(c => {
+    byCat[c.id].sort((a, b) => {
+      const mb = (b.mastery || 0) - (a.mastery || 0);
+      if (mb !== 0) return mb;
+      return String(a.en).localeCompare(String(b.en));
+    });
+  });
+
+  // HTML 組み立て
+  const html = [];
+  CATEGORIES.forEach(c => {
+    const words = byCat[c.id];
+    if (words.length === 0) return;
+    html.push('<div class="category">');
+    html.push(
+      '<div class="cat-header">' +
+        '<div class="cat-title">' + c.emoji + ' ' + c.label + '</div>' +
+        '<div class="cat-count">' + words.length + ' <ruby>個<rt>こ</rt></ruby></div>' +
+      '</div>'
+    );
+    html.push('<div class="word-grid">');
+    words.forEach(w => {
+      const hasTrophy = (w.perfectDays || []).length > 0;
+      const stars = starsFor(w.mastery || 0);
+      const emoji = getEmoji(w.en);
+      html.push(
+        '<div class="word-card' + (hasTrophy ? ' trophy' : '') + '">' +
+          (hasTrophy ? '<div class="word-trophy">🏆</div>' : '') +
+          '<div class="word-emoji">' + emoji + '</div>' +
+          '<div class="word-en">' + escapeHtml(w.en) + '</div>' +
+          '<div class="word-ja">' + escapeHtml(w.ja || '') + '</div>' +
+          '<div class="word-stars">' + stars + '</div>' +
+          (w.ex ?
+            '<details class="word-detail">' +
+              '<summary>れいぶん ▾</summary>' +
+              '<div class="word-ex">' + escapeHtml(w.ex) + '</div>' +
+              (w.exJa ? '<div class="word-ex-ja">' + escapeHtml(w.exJa) + '</div>' : '') +
+            '</details>'
+          : '') +
+          (w.learned_at ? '<div class="word-date">' + w.learned_at + '〜</div>' : '') +
+        '</div>'
+      );
+    });
+    html.push('</div>');
+    html.push('</div>');
+  });
+  content.innerHTML = html.join('');
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function resetCollection() {
+  if (confirm('ずかんを ぜんぶ けしてもいい？\n(もとには もどせないよ)')) {
+    localStorage.removeItem(KEY);
+    render();
+  }
+}
+
+render();
+</script>
+</body>
+</html>
