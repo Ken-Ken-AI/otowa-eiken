@@ -488,16 +488,26 @@ let queue = [];
 let currentWord = null;
 let showAnswer = false;
 
+// ちゃんとシャッフルする関数（Fisher-Yates アルゴリズム）
+function shuffle(array) {
+  const a = [...array];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function initQueue() {
   // 未習得 → カスタム優先 → シャッフル
   const remaining = ALL_WORDS.filter(w => !done.has(w.id));
   if (remaining.length === 0) {
     // 全部おぼえてたら、シャッフルしてリストアップ（おさらい）
-    queue = [...ALL_WORDS].sort(() => Math.random() - 0.5);
+    queue = shuffle(ALL_WORDS);
   } else {
-    // カスタム単語は先頭、デフォルトは後ろ
-    const custom = remaining.filter(w => w.isCustom).sort(() => Math.random() - 0.5);
-    const def = remaining.filter(w => !w.isCustom).sort(() => Math.random() - 0.5);
+    // カスタム単語は先頭、デフォルトは後ろ。それぞれ中はちゃんとシャッフル
+    const custom = shuffle(remaining.filter(w => w.isCustom));
+    const def = shuffle(remaining.filter(w => !w.isCustom));
     queue = [...custom, ...def];
   }
 }
