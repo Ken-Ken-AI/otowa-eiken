@@ -364,7 +364,115 @@ const WORDS = [
 // ===== CUSTOM WORDS（けんたろうさんが伝えてくれた単語をここに追加していく） =====
 // 🌟マーク付きで表示され、デフォルト単語より優先的に出題される
 const CUSTOM_WORDS = [
-  // 例：{en:"library", jp:"としょかん", emoji:"📚"},
+  // 疑問詞
+  {en:"what", jp:"なに", emoji:"🤔"},
+  {en:"which", jp:"どっち", emoji:"🔀"},
+  {en:"when", jp:"いつ", emoji:"⏰"},
+  {en:"why", jp:"なぜ", emoji:"❓"},
+  {en:"whose", jp:"だれの", emoji:"🙋"},
+
+  // 頻度・量
+  {en:"almost", jp:"ほとんど", emoji:"🔜"},
+  {en:"around", jp:"まわりに／だいたい", emoji:"🔄"},
+  {en:"usually", jp:"たいてい", emoji:"📆"},
+
+  // 物・人
+  {en:"dictionary", jp:"じしょ", emoji:"📖"},
+  {en:"brother", jp:"おにいさん／おとうと", emoji:"👦"},
+  {en:"friend", jp:"ともだち", emoji:"👫"},
+  {en:"present", jp:"プレゼント／いまの", emoji:"🎁"},
+
+  // 数字 1〜10
+  {en:"one", jp:"いち", emoji:"1️⃣"},
+  {en:"two", jp:"に", emoji:"2️⃣"},
+  {en:"three", jp:"さん", emoji:"3️⃣"},
+  {en:"four", jp:"よん", emoji:"4️⃣"},
+  {en:"five", jp:"ご", emoji:"5️⃣"},
+  {en:"six", jp:"ろく", emoji:"6️⃣"},
+  {en:"seven", jp:"なな", emoji:"7️⃣"},
+  {en:"eight", jp:"はち", emoji:"8️⃣"},
+  {en:"nine", jp:"きゅう", emoji:"9️⃣"},
+  {en:"ten", jp:"じゅう", emoji:"🔟"},
+
+  // 月
+  {en:"January", jp:"1がつ", emoji:"🎍"},
+  {en:"February", jp:"2がつ", emoji:"💝"},
+  {en:"March", jp:"3がつ", emoji:"🌸"},
+  {en:"April", jp:"4がつ", emoji:"🌷"},
+  {en:"May", jp:"5がつ", emoji:"🎏"},
+  {en:"June", jp:"6がつ", emoji:"☔"},
+  {en:"July", jp:"7がつ", emoji:"🎋"},
+  {en:"August", jp:"8がつ", emoji:"🎆"},
+  {en:"September", jp:"9がつ", emoji:"🍇"},
+  {en:"October", jp:"10がつ", emoji:"🎃"},
+  {en:"November", jp:"11がつ", emoji:"🍁"},
+  {en:"December", jp:"12がつ", emoji:"🎄"},
+
+  // 曜日
+  {en:"Tuesday", jp:"かようび", emoji:"🔥"},
+  {en:"Wednesday", jp:"すいようび", emoji:"💧"},
+  {en:"Thursday", jp:"もくようび", emoji:"🌳"},
+  {en:"Friday", jp:"きんようび", emoji:"💰"},
+  {en:"Saturday", jp:"どようび", emoji:"🪐"},
+
+  // 時
+  {en:"night", jp:"よる", emoji:"🌙"},
+  {en:"noon", jp:"ひる／しょうご", emoji:"☀️"},
+  {en:"weekend", jp:"しゅうまつ", emoji:"🎉"},
+  {en:"minute", jp:"ふん（じかんの）", emoji:"⏱️"},
+  {en:"month", jp:"つき／げつ", emoji:"📅"},
+
+  // 位置・方向
+  {en:"right", jp:"みぎ／ただしい", emoji:"➡️"},
+  {en:"under", jp:"〜のしたに", emoji:"⬇️"},
+  {en:"on", jp:"〜のうえに", emoji:"⬆️"},
+  {en:"after", jp:"〜のあと", emoji:"⏭️"},
+  {en:"before", jp:"〜のまえ", emoji:"⏮️"},
+  {en:"from", jp:"〜から", emoji:"🛫"},
+
+  // 所有・指示
+  {en:"my", jp:"わたしの", emoji:"👉"},
+  {en:"mine", jp:"わたしのもの", emoji:"🙋"},
+  {en:"they", jp:"かれら／それら", emoji:"👥"},
+  {en:"their", jp:"かれらの", emoji:"👥"},
+  {en:"theirs", jp:"かれらのもの", emoji:"👥"},
+  {en:"there", jp:"そこに／あそこに", emoji:"📍"},
+  {en:"then", jp:"そのとき／それから", emoji:"⏰"},
+
+  // スポーツ・趣味
+  {en:"baseball", jp:"やきゅう", emoji:"⚾"},
+  {en:"basketball", jp:"バスケットボール", emoji:"🏀"},
+  {en:"racket", jp:"ラケット", emoji:"🎾"},
+  {en:"hiking", jp:"ハイキング", emoji:"🥾"},
+
+  // 動詞
+  {en:"take", jp:"とる", emoji:"✋"},
+  {en:"watch", jp:"みる／うでどけい", emoji:"⌚"},
+  {en:"listen", jp:"きく", emoji:"👂"},
+  {en:"live", jp:"すむ／いきる", emoji:"🏡"},
+
+  // よく出るフレーズ
+  {en:"a cup of", jp:"〜いっぱい（カップ）", emoji:"🍵"},
+  {en:"of course", jp:"もちろん", emoji:"✨"},
+  {en:"take a picture", jp:"しゃしんを とる", emoji:"📸"},
+  {en:"live in", jp:"〜にすむ", emoji:"🏘️"},
+
+  // 場所・もの
+  {en:"school", jp:"がっこう", emoji:"🏫"},
+  {en:"bath", jp:"おふろ", emoji:"🛁"},
+  {en:"locker", jp:"ロッカー", emoji:"🔐"},
+  {en:"bridge", jp:"はし（かわの うえの）", emoji:"🌉"},
+
+  // 形容詞
+  {en:"beautiful", jp:"きれい／うつくしい", emoji:"🌸"},
+  {en:"little", jp:"ちいさい／すこし", emoji:"🐭"},
+
+  // 国・言語
+  {en:"India", jp:"インド", emoji:"🇮🇳"},
+  {en:"Spain", jp:"スペイン", emoji:"🇪🇸"},
+  {en:"France", jp:"フランス", emoji:"🇫🇷"},
+  {en:"French", jp:"フランスご／フランスの", emoji:"🥖"},
+  {en:"Spanish", jp:"スペインご／スペインの", emoji:"💃"},
 ];
 
 // ===== 全単語（デフォルト + カスタム）=====
