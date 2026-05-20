@@ -93,6 +93,28 @@
     line-height: 1;
     margin-bottom: 8px;
   }
+  .star-mark {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    font-size: 28px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+    animation: twinkle 1.6s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15) rotate(8deg); }
+  }
+  .star-label {
+    display: inline-block;
+    background: linear-gradient(135deg, #fff59d, #ffd54f);
+    color: #5d4037;
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 6px;
+  }
   .card .english {
     font-size: 54px;
     font-weight: bold;
@@ -339,6 +361,18 @@ const WORDS = [
   {en:"eye", jp:"め", emoji:"👁️"},
 ];
 
+// ===== CUSTOM WORDS（けんたろうさんが伝えてくれた単語をここに追加していく） =====
+// 🌟マーク付きで表示され、デフォルト単語より優先的に出題される
+const CUSTOM_WORDS = [
+  // 例：{en:"library", jp:"としょかん", emoji:"📚"},
+];
+
+// ===== 全単語（デフォルト + カスタム）=====
+const ALL_WORDS = [
+  ...WORDS.map((w, i) => ({...w, id: `d${i}`, isCustom: false})),
+  ...CUSTOM_WORDS.map((w, i) => ({...w, id: `c${i}`, isCustom: true}))
+];
+
 // ===== State =====
 const STORAGE_KEY = 'otowa-flashcard-done-v1';
 let done = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
@@ -347,14 +381,16 @@ let currentWord = null;
 let showAnswer = false;
 
 function initQueue() {
-  // 未習得を優先 + シャッフル
-  const remaining = WORDS.map((w, i) => ({...w, id: i}))
-    .filter(w => !done.has(w.id));
+  // 未習得 → カスタム優先 → シャッフル
+  const remaining = ALL_WORDS.filter(w => !done.has(w.id));
   if (remaining.length === 0) {
     // 全部おぼえてたら、シャッフルしてリストアップ（おさらい）
-    queue = [...WORDS.map((w, i) => ({...w, id: i}))].sort(() => Math.random() - 0.5);
+    queue = [...ALL_WORDS].sort(() => Math.random() - 0.5);
   } else {
-    queue = remaining.sort(() => Math.random() - 0.5);
+    // カスタム単語は先頭、デフォルトは後ろ
+    const custom = remaining.filter(w => w.isCustom).sort(() => Math.random() - 0.5);
+    const def = remaining.filter(w => !w.isCustom).sort(() => Math.random() - 0.5);
+    queue = [...custom, ...def];
   }
 }
 
@@ -363,7 +399,7 @@ function saveDone() {
 }
 
 function updateProgress() {
-  const total = WORDS.length;
+  const total = ALL_WORDS.length;
   const doneCnt = done.size;
   const pct = (doneCnt / total) * 100;
   document.getElementById('progress-fill').style.width = pct + '%';
@@ -394,8 +430,10 @@ function render() {
     // 表：英単語のみ
     main.innerHTML = `
       <div class="card" id="card">
+        ${currentWord.isCustom ? '<div class="star-mark">🌟</div>' : ''}
         <div class="english">${currentWord.en}</div>
         <div class="hint">よめたかな？</div>
+        ${currentWord.isCustom ? '<div class="star-label">🌟 とくべつ もんだい</div>' : ''}
       </div>
       <button class="btn btn-primary" id="show-btn">👀 こたえを みる</button>
     `;
@@ -411,9 +449,11 @@ function render() {
     // 裏：絵＋ひらがな＋判定ボタン
     main.innerHTML = `
       <div class="card" id="card">
-        <div class="emoji">${currentWord.emoji}</div>
+        ${currentWord.isCustom ? '<div class="star-mark">🌟</div>' : ''}
+        <div class="emoji">${currentWord.emoji || '📝'}</div>
         <div class="english" style="font-size:36px;">${currentWord.en}</div>
         <div class="japanese">${currentWord.jp}</div>
+        ${currentWord.isCustom ? '<div class="star-label">🌟 とくべつ もんだい</div>' : ''}
       </div>
       <div class="btn-row">
         <button class="btn btn-again" id="again-btn">🔁 もういっかい</button>
