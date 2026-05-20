@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="おとわの えいたんご">
+<title>おとわの えいたんご 🌸</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, "Hiragino Maru Gothic ProN", "ヒラギノ丸ゴ ProN W4", sans-serif;
+    background: linear-gradient(180deg, #ffe5ec 0%, #fff8e1 50%, #e8f5e9 100%);
+    min-height: 100vh;
+    color: #333;
+    overflow-x: hidden;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  /* ヘッダー */
+  .header {
+    text-align: center;
+    padding: 14px 16px 8px;
+  }
+  .header h1 {
+    font-size: 20px;
+    margin: 0;
+    color: #d63384;
+    text-shadow: 2px 2px 0 #fff;
+  }
+  .progress-wrap {
+    margin: 10px 16px;
+    background: #fff;
+    border-radius: 20px;
+    padding: 6px 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 8px;
+    background: #f8bbd0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #d63384, #ff80ab);
+    width: 0%;
+    transition: width 0.4s;
+  }
+  .progress-text {
+    color: #d63384;
+    font-weight: bold;
+    min-width: 60px;
+    text-align: right;
+  }
+  /* カード */
+  .card-wrap {
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 28px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1), 0 0 0 4px #fce4ec;
+    padding: 36px 24px;
+    width: 100%;
+    max-width: 440px;
+    text-align: center;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.2s, transform 0.2s;
+    position: relative;
+  }
+  .card.fade {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  .card .emoji {
+    font-size: 96px;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .card .english {
+    font-size: 54px;
+    font-weight: bold;
+    color: #6a1b9a;
+    margin: 14px 0;
+    letter-spacing: 1px;
+  }
+  .card .japanese {
+    font-size: 32px;
+    color: #d63384;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  .card .hint {
+    font-size: 14px;
+    color: #999;
+    margin-top: 8px;
+  }
+  /* ボタン */
+  .btn {
+    border: none;
+    border-radius: 100px;
+    padding: 18px 32px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    transition: transform 0.1s, box-shadow 0.1s;
+    width: 100%;
+    max-width: 440px;
+    font-family: inherit;
+  }
+  .btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+  }
+  .btn-primary {
+    background: linear-gradient(180deg, #ffd54f, #ffb300);
+    color: #5d4037;
+  }
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    max-width: 440px;
+  }
+  .btn-row .btn { flex: 1; padding: 18px 12px; font-size: 18px; }
+  .btn-done {
+    background: linear-gradient(180deg, #81c784, #43a047);
+    color: #fff;
+  }
+  .btn-again {
+    background: linear-gradient(180deg, #f8bbd0, #ec407a);
+    color: #fff;
+  }
+  /* リセット */
+  .footer {
+    text-align: center;
+    padding: 16px;
+    font-size: 12px;
+    color: #999;
+  }
+  .reset-btn {
+    background: transparent;
+    border: 1px dashed #999;
+    color: #999;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  /* 完了画面 */
+  .all-done {
+    text-align: center;
+    padding: 30px 20px;
+  }
+  .all-done .big {
+    font-size: 80px;
+    margin: 20px 0;
+  }
+  .all-done h2 {
+    color: #d63384;
+    font-size: 26px;
+  }
+  .all-done p {
+    color: #666;
+    font-size: 16px;
+  }
+  /* 桜の装飾 */
+  .deco {
+    position: fixed;
+    pointer-events: none;
+    opacity: 0.4;
+    font-size: 40px;
+  }
+  .deco.tl { top: 10px; left: 10px; }
+  .deco.br { bottom: 60px; right: 10px; }
+</style>
+</head>
+<body>
+
+<div class="deco tl">🌸</div>
+<div class="deco br">🌸</div>
+
+<div class="header">
+  <h1>🌸 おとわの えいたんご 🌸</h1>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  <div class="progress-text" id="progress-text">0 / 0</div>
+</div>
+
+<div class="card-wrap" id="main">
+  <!-- カードとボタンはJSで描画 -->
+</div>
+
+<div class="footer">
+  <button class="reset-btn" id="reset-btn">📝 さいしょから やりなおす</button>
+</div>
+
+<script>
+// ===== 英検5級 頻出単語データ =====
+const WORDS = [
+  // 動物
+  {en:"cat", jp:"ねこ", emoji:"🐱"},
+  {en:"dog", jp:"いぬ", emoji:"🐶"},
+  {en:"bird", jp:"とり", emoji:"🐦"},
+  {en:"fish", jp:"さかな", emoji:"🐟"},
+  {en:"rabbit", jp:"うさぎ", emoji:"🐰"},
+  {en:"horse", jp:"うま", emoji:"🐴"},
+  {en:"cow", jp:"うし", emoji:"🐄"},
+  {en:"pig", jp:"ぶた", emoji:"🐷"},
+  {en:"mouse", jp:"ねずみ", emoji:"🐭"},
+  {en:"bear", jp:"くま", emoji:"🐻"},
+  {en:"monkey", jp:"さる", emoji:"🐵"},
+  {en:"elephant", jp:"ぞう", emoji:"🐘"},
+  {en:"lion", jp:"ライオン", emoji:"🦁"},
+  {en:"panda", jp:"パンダ", emoji:"🐼"},
+
+  // 食べ物
+  {en:"apple", jp:"りんご", emoji:"🍎"},
+  {en:"orange", jp:"オレンジ", emoji:"🍊"},
+  {en:"banana", jp:"バナナ", emoji:"🍌"},
+  {en:"bread", jp:"パン", emoji:"🍞"},
+  {en:"rice", jp:"ごはん", emoji:"🍚"},
+  {en:"milk", jp:"ぎゅうにゅう", emoji:"🥛"},
+  {en:"egg", jp:"たまご", emoji:"🥚"},
+  {en:"cake", jp:"ケーキ", emoji:"🍰"},
+  {en:"juice", jp:"ジュース", emoji:"🧃"},
+  {en:"tea", jp:"おちゃ", emoji:"🍵"},
+  {en:"breakfast", jp:"あさごはん", emoji:"🍳"},
+  {en:"lunch", jp:"ひるごはん", emoji:"🍱"},
+  {en:"dinner", jp:"ばんごはん", emoji:"🍽️"},
+
+  // 学校・もの
+  {en:"book", jp:"ほん", emoji:"📚"},
+  {en:"pen", jp:"ペン", emoji:"🖊️"},
+  {en:"pencil", jp:"えんぴつ", emoji:"✏️"},
+  {en:"eraser", jp:"けしごむ", emoji:"🧽"},
+  {en:"notebook", jp:"ノート", emoji:"📓"},
+  {en:"bag", jp:"かばん", emoji:"🎒"},
+  {en:"desk", jp:"つくえ", emoji:"📐"},
+  {en:"chair", jp:"いす", emoji:"🪑"},
+  {en:"clock", jp:"とけい", emoji:"🕰️"},
+
+  // 家・場所
+  {en:"house", jp:"いえ", emoji:"🏠"},
+  {en:"school", jp:"がっこう", emoji:"🏫"},
+  {en:"park", jp:"こうえん", emoji:"🏞️"},
+  {en:"station", jp:"えき", emoji:"🚉"},
+  {en:"hospital", jp:"びょういん", emoji:"🏥"},
+  {en:"library", jp:"としょかん", emoji:"📖"},
+  {en:"shop", jp:"おみせ", emoji:"🏪"},
+  {en:"zoo", jp:"どうぶつえん", emoji:"🦒"},
+
+  // 自然
+  {en:"sun", jp:"たいよう", emoji:"☀️"},
+  {en:"moon", jp:"つき", emoji:"🌙"},
+  {en:"star", jp:"ほし", emoji:"⭐"},
+  {en:"rain", jp:"あめ", emoji:"🌧️"},
+  {en:"snow", jp:"ゆき", emoji:"❄️"},
+  {en:"tree", jp:"き", emoji:"🌳"},
+  {en:"flower", jp:"はな", emoji:"🌸"},
+  {en:"mountain", jp:"やま", emoji:"⛰️"},
+  {en:"river", jp:"かわ", emoji:"🏞️"},
+  {en:"sea", jp:"うみ", emoji:"🌊"},
+
+  // 家族・人
+  {en:"father", jp:"おとうさん", emoji:"👨"},
+  {en:"mother", jp:"おかあさん", emoji:"👩"},
+  {en:"brother", jp:"おにいさん／おとうと", emoji:"👦"},
+  {en:"sister", jp:"おねえさん／いもうと", emoji:"👧"},
+  {en:"friend", jp:"ともだち", emoji:"👫"},
+  {en:"teacher", jp:"せんせい", emoji:"👨‍🏫"},
+  {en:"boy", jp:"おとこのこ", emoji:"👦"},
+  {en:"girl", jp:"おんなのこ", emoji:"👧"},
+
+  // 乗り物
+  {en:"car", jp:"くるま", emoji:"🚗"},
+  {en:"bus", jp:"バス", emoji:"🚌"},
+  {en:"train", jp:"でんしゃ", emoji:"🚆"},
+  {en:"bike", jp:"じてんしゃ", emoji:"🚲"},
+
+  // 色
+  {en:"red", jp:"あか", emoji:"🔴"},
+  {en:"blue", jp:"あお", emoji:"🔵"},
+  {en:"yellow", jp:"きいろ", emoji:"🟡"},
+  {en:"green", jp:"みどり", emoji:"🟢"},
+  {en:"black", jp:"くろ", emoji:"⚫"},
+  {en:"white", jp:"しろ", emoji:"⚪"},
+  {en:"pink", jp:"ピンク", emoji:"🩷"},
+
+  // 動詞
+  {en:"play", jp:"あそぶ／する", emoji:"⚽"},
+  {en:"eat", jp:"たべる", emoji:"😋"},
+  {en:"drink", jp:"のむ", emoji:"🥤"},
+  {en:"sleep", jp:"ねる", emoji:"😴"},
+  {en:"run", jp:"はしる", emoji:"🏃"},
+  {en:"swim", jp:"およぐ", emoji:"🏊"},
+  {en:"sing", jp:"うたう", emoji:"🎤"},
+  {en:"read", jp:"よむ", emoji:"📖"},
+  {en:"write", jp:"かく", emoji:"✍️"},
+  {en:"go", jp:"いく", emoji:"➡️"},
+  {en:"come", jp:"くる", emoji:"⬅️"},
+  {en:"see", jp:"みる", emoji:"👀"},
+  {en:"like", jp:"すき", emoji:"💖"},
+
+  // 形容詞・大きさ
+  {en:"big", jp:"おおきい", emoji:"🐘"},
+  {en:"small", jp:"ちいさい", emoji:"🐭"},
+  {en:"new", jp:"あたらしい", emoji:"✨"},
+  {en:"old", jp:"ふるい／としをとった", emoji:"👴"},
+  {en:"hot", jp:"あつい", emoji:"🔥"},
+  {en:"cold", jp:"つめたい／さむい", emoji:"🧊"},
+  {en:"happy", jp:"うれしい", emoji:"😊"},
+  {en:"sad", jp:"かなしい", emoji:"😢"},
+
+  // 体・くらし
+  {en:"head", jp:"あたま", emoji:"🧠"},
+  {en:"hand", jp:"て", emoji:"✋"},
+  {en:"foot", jp:"あし", emoji:"🦶"},
+  {en:"eye", jp:"め", emoji:"👁️"},
+];
+
+// ===== State =====
+const STORAGE_KEY = 'otowa-flashcard-done-v1';
+let done = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+let queue = [];
+let currentWord = null;
+let showAnswer = false;
+
+function initQueue() {
+  // 未習得を優先 + シャッフル
+  const remaining = WORDS.map((w, i) => ({...w, id: i}))
+    .filter(w => !done.has(w.id));
+  if (remaining.length === 0) {
+    // 全部おぼえてたら、シャッフルしてリストアップ（おさらい）
+    queue = [...WORDS.map((w, i) => ({...w, id: i}))].sort(() => Math.random() - 0.5);
+  } else {
+    queue = remaining.sort(() => Math.random() - 0.5);
+  }
+}
+
+function saveDone() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...done]));
+}
+
+function updateProgress() {
+  const total = WORDS.length;
+  const doneCnt = done.size;
+  const pct = (doneCnt / total) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${doneCnt} / ${total}`;
+}
+
+function nextCard() {
+  if (queue.length === 0) {
+    initQueue();
+    if (queue.length === 0) {
+      showAllDone();
+      return;
+    }
+  }
+  currentWord = queue.shift();
+  showAnswer = false;
+  render();
+}
+
+function render() {
+  updateProgress();
+  if (!currentWord) {
+    showAllDone();
+    return;
+  }
+  const main = document.getElementById('main');
+  if (!showAnswer) {
+    // 表：英単語のみ
+    main.innerHTML = `
+      <div class="card" id="card">
+        <div class="english">${currentWord.en}</div>
+        <div class="hint">よめたかな？</div>
+      </div>
+      <button class="btn btn-primary" id="show-btn">👀 こたえを みる</button>
+    `;
+    document.getElementById('show-btn').addEventListener('click', () => {
+      const card = document.getElementById('card');
+      card.classList.add('fade');
+      setTimeout(() => {
+        showAnswer = true;
+        render();
+      }, 200);
+    });
+  } else {
+    // 裏：絵＋ひらがな＋判定ボタン
+    main.innerHTML = `
+      <div class="card" id="card">
+        <div class="emoji">${currentWord.emoji}</div>
+        <div class="english" style="font-size:36px;">${currentWord.en}</div>
+        <div class="japanese">${currentWord.jp}</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-again" id="again-btn">🔁 もういっかい</button>
+        <button class="btn btn-done" id="done-btn">✅ できた！</button>
+      </div>
+    `;
+    document.getElementById('done-btn').addEventListener('click', () => {
+      done.add(currentWord.id);
+      saveDone();
+      transitionTo(nextCard);
+    });
+    document.getElementById('again-btn').addEventListener('click', () => {
+      // キューの3〜7番目あたりに差し込み
+      const insertPos = Math.min(Math.floor(Math.random() * 5) + 3, queue.length);
+      queue.splice(insertPos, 0, currentWord);
+      transitionTo(nextCard);
+    });
+  }
+}
+
+function transitionTo(fn) {
+  const card = document.getElementById('card');
+  if (card) card.classList.add('fade');
+  setTimeout(fn, 200);
+}
+
+function showAllDone() {
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="all-done">
+      <div class="big">🎉🌸🎉</div>
+      <h2>ぜんぶ おぼえた！</h2>
+      <p>すごい！ ぜんぶの たんごを マスター したよ。<br>もう いちど やりなおすには、下の「さいしょから」を おしてね。</p>
+    </div>
+  `;
+}
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (confirm('ぜんぶの きろくを けして、さいしょから やりなおすよ。いいかな？')) {
+    done.clear();
+    saveDone();
+    initQueue();
+    nextCard();
+  }
+});
+
+// 起動
+initQueue();
+nextCard();
+</script>
+
+</body>
+</html>
