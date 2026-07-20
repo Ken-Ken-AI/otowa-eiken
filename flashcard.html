@@ -115,6 +115,16 @@
     font-weight: bold;
     margin-top: 6px;
   }
+  .grade4-label {
+    display: inline-block;
+    background: linear-gradient(135deg, #90caf9, #42a5f5);
+    color: #fff;
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 6px;
+  }
   .card .english {
     font-size: 54px;
     font-weight: bold;
@@ -484,10 +494,180 @@ const CUSTOM_WORDS = [
   {en:"Spanish", jp:"スペインご／スペインの", emoji:"💃"},
 ];
 
-// ===== 全単語（デフォルト + カスタム）=====
+// ===== 4級 単語（2026-07-21 新規、フェーズ1）=====
+// 5→4級の語彙ギャップ（600語→1300語）を埋めるための第1弾。
+// 過去問（2021年度1・2回、大問1〜3）で実際に出た単語＋4級一般必修語彙から構成。
+// 単語帳（でる順パス単4級など）を買ったら、それも取り込んで拡充していく。
+const GRADE4_WORDS = [
+  // 疑問詞（もれてた分）
+  {en:"how", jp:"どうやって／どのくらい", emoji:"❓"},
+  {en:"where", jp:"どこ", emoji:"📍"},
+
+  // 曜日（もれてた分）
+  {en:"Monday", jp:"げつようび", emoji:"🌕"},
+  {en:"Sunday", jp:"にちようび", emoji:"☀️"},
+
+  // きせつ
+  {en:"spring", jp:"はる", emoji:"🌸"},
+  {en:"summer", jp:"なつ", emoji:"🌻"},
+  {en:"fall", jp:"あき", emoji:"🍁"},
+  {en:"winter", jp:"ふゆ", emoji:"⛄"},
+  {en:"season", jp:"きせつ", emoji:"🗓️"},
+
+  // 頻度（どのくらいよく）
+  {en:"sometimes", jp:"ときどき", emoji:"🔁"},
+  {en:"often", jp:"よく", emoji:"🔂"},
+  {en:"always", jp:"いつも", emoji:"♾️"},
+  {en:"never", jp:"けっして〜ない", emoji:"🚫"},
+
+  // 前置詞（4級で超重要）
+  {en:"to", jp:"〜へ／に", emoji:"➡️"},
+  {en:"at", jp:"〜で／に", emoji:"📍"},
+  {en:"in", jp:"〜のなかに", emoji:"📦"},
+  {en:"for", jp:"〜のために", emoji:"🎁"},
+  {en:"with", jp:"〜といっしょに", emoji:"🤝"},
+  {en:"about", jp:"〜について", emoji:"💬"},
+  {en:"into", jp:"〜のなかへ", emoji:"🚪"},
+  {en:"through", jp:"〜をとおって", emoji:"🌀"},
+  {en:"up", jp:"うえへ", emoji:"⬆️"},
+  {en:"down", jp:"したへ", emoji:"⬇️"},
+  {en:"over", jp:"〜をこえて", emoji:"🌉"},
+  {en:"of", jp:"〜の", emoji:"🔗"},
+
+  // 天気・とき
+  {en:"weather", jp:"てんき", emoji:"🌤️"},
+  {en:"cloudy", jp:"くもりの", emoji:"☁️"},
+  {en:"sunny", jp:"はれた", emoji:"🌞"},
+  {en:"windy", jp:"かぜがつよい", emoji:"💨"},
+  {en:"today", jp:"きょう", emoji:"📅"},
+  {en:"yesterday", jp:"きのう", emoji:"⏪"},
+  {en:"tomorrow", jp:"あした", emoji:"⏩"},
+  {en:"every", jp:"まいかい／まいにち", emoji:"🔁"},
+
+  // 学校・べんきょう
+  {en:"English", jp:"えいご", emoji:"🇬🇧"},
+  {en:"Japanese", jp:"にほんご／こくご", emoji:"🇯🇵"},
+  {en:"classroom", jp:"きょうしつ", emoji:"🏫"},
+  {en:"science", jp:"りか", emoji:"🔬"},
+  {en:"math", jp:"さんすう", emoji:"🧮"},
+  {en:"music", jp:"おんがく", emoji:"🎵"},
+  {en:"homework", jp:"しゅくだい", emoji:"📝"},
+  {en:"test", jp:"テスト", emoji:"📄"},
+  {en:"group", jp:"グループ", emoji:"👥"},
+  {en:"member", jp:"メンバー", emoji:"🙋"},
+  {en:"festival", jp:"おまつり", emoji:"🎏"},
+  {en:"picnic", jp:"ピクニック", emoji:"🧺"},
+  {en:"story", jp:"おはなし", emoji:"📖"},
+  {en:"magazine", jp:"ざっし", emoji:"📰"},
+  {en:"speech", jp:"スピーチ", emoji:"🎤"},
+
+  // 動詞（4級レベル）
+  {en:"visit", jp:"たずねる", emoji:"🚪"},
+  {en:"invite", jp:"しょうたいする", emoji:"✉️"},
+  {en:"leave", jp:"でかける／でていく", emoji:"🚶"},
+  {en:"arrive", jp:"つく", emoji:"🛬"},
+  {en:"stop", jp:"とまる", emoji:"🛑"},
+  {en:"finish", jp:"おわる", emoji:"🏁"},
+  {en:"call", jp:"でんわする／よぶ", emoji:"📞"},
+  {en:"send", jp:"おくる", emoji:"📤"},
+  {en:"put", jp:"おく", emoji:"📦"},
+  {en:"lose", jp:"なくす／まける", emoji:"😵"},
+  {en:"find", jp:"みつける", emoji:"🔍"},
+  {en:"buy", jp:"かう", emoji:"🛒"},
+  {en:"think", jp:"おもう", emoji:"🤔"},
+  {en:"feel", jp:"かんじる", emoji:"🤗"},
+  {en:"bring", jp:"もってくる", emoji:"🎁"},
+  {en:"wear", jp:"きる（ふくを）", emoji:"👕"},
+  {en:"meet", jp:"あう", emoji:"🤝"},
+  {en:"practice", jp:"れんしゅうする", emoji:"🎾"},
+  {en:"enjoy", jp:"たのしむ", emoji:"😄"},
+  {en:"need", jp:"ひつようとする", emoji:"❗"},
+  {en:"give", jp:"あげる", emoji:"🎁"},
+  {en:"want", jp:"ほしい", emoji:"🙏"},
+  {en:"help", jp:"たすける", emoji:"🆘"},
+  {en:"stay", jp:"たいざいする／いる", emoji:"🏨"},
+  {en:"walk", jp:"あるく", emoji:"🚶"},
+
+  // 形容詞
+  {en:"famous", jp:"ゆうめいな", emoji:"⭐"},
+  {en:"busy", jp:"いそがしい", emoji:"🏃"},
+  {en:"tired", jp:"つかれた", emoji:"😪"},
+  {en:"free", jp:"ひまな／じゆうな", emoji:"🕊️"},
+  {en:"interested", jp:"きょうみがある", emoji:"🧐"},
+  {en:"interesting", jp:"おもしろい", emoji:"✨"},
+  {en:"healthy", jp:"けんこうな", emoji:"💪"},
+  {en:"short", jp:"みじかい", emoji:"📏"},
+  {en:"long", jp:"ながい", emoji:"📏"},
+  {en:"kind", jp:"しんせつな", emoji:"💗"},
+  {en:"fine", jp:"げんきな／いいてんきの", emoji:"👌"},
+  {en:"different", jp:"ちがう", emoji:"🔀"},
+  {en:"important", jp:"たいせつな", emoji:"❗"},
+  {en:"difficult", jp:"むずかしい", emoji:"😖"},
+  {en:"easy", jp:"かんたんな", emoji:"😌"},
+  {en:"early", jp:"はやい／はやく", emoji:"🌅"},
+
+  // 副詞
+  {en:"slowly", jp:"ゆっくりと", emoji:"🐢"},
+  {en:"quickly", jp:"はやく", emoji:"⚡"},
+  {en:"carefully", jp:"ちゅういぶかく", emoji:"🔍"},
+  {en:"suddenly", jp:"とつぜん", emoji:"💥"},
+  {en:"already", jp:"すでに", emoji:"✅"},
+  {en:"still", jp:"まだ", emoji:"⏳"},
+
+  // 場所・施設
+  {en:"hometown", jp:"じもと／こきょう", emoji:"🏘️"},
+  {en:"store", jp:"おみせ", emoji:"🏬"},
+  {en:"bank", jp:"ぎんこう", emoji:"🏦"},
+  {en:"theater", jp:"げきじょう", emoji:"🎭"},
+  {en:"corner", jp:"かど", emoji:"📐"},
+  {en:"sofa", jp:"ソファ", emoji:"🛋️"},
+  {en:"soap", jp:"せっけん", emoji:"🧼"},
+  {en:"shower", jp:"シャワー", emoji:"🚿"},
+  {en:"town", jp:"まち", emoji:"🏙️"},
+  {en:"garden", jp:"にわ", emoji:"🌷"},
+  {en:"wall", jp:"かべ", emoji:"🧱"},
+  {en:"sky", jp:"そら", emoji:"🌌"},
+
+  // 家族
+  {en:"grandmother", jp:"おばあさん", emoji:"👵"},
+  {en:"grandfather", jp:"おじいさん", emoji:"👴"},
+  {en:"family", jp:"かぞく", emoji:"👨‍👩‍👧"},
+  {en:"parents", jp:"りょうしん", emoji:"👪"},
+  {en:"aunt", jp:"おばさん", emoji:"👩"},
+  {en:"uncle", jp:"おじさん", emoji:"👨"},
+  {en:"cousin", jp:"いとこ", emoji:"🧑"},
+
+  // 趣味・スポーツ
+  {en:"soccer", jp:"サッカー", emoji:"⚽"},
+  {en:"tennis", jp:"テニス", emoji:"🎾"},
+  {en:"fishing", jp:"つり", emoji:"🎣"},
+  {en:"hobby", jp:"しゅみ", emoji:"🎨"},
+  {en:"camera", jp:"カメラ", emoji:"📷"},
+  {en:"trip", jp:"りょこう", emoji:"✈️"},
+  {en:"postcard", jp:"はがき", emoji:"💌"},
+  {en:"ticket", jp:"チケット", emoji:"🎫"},
+  {en:"ice cream", jp:"アイスクリーム", emoji:"🍦"},
+  {en:"concert", jp:"コンサート", emoji:"🎼"},
+
+  // その他名詞
+  {en:"idea", jp:"かんがえ", emoji:"💡"},
+  {en:"socks", jp:"くつした", emoji:"🧦"},
+  {en:"swimming pool", jp:"プール", emoji:"🏊"},
+  {en:"stone", jp:"いし", emoji:"🪨"},
+  {en:"umbrella", jp:"かさ", emoji:"☂️"},
+
+  // よく出る表現
+  {en:"That's all.", jp:"それだけです。", emoji:"✅"},
+  {en:"You're welcome.", jp:"どういたしまして。", emoji:"😊"},
+  {en:"I have no idea.", jp:"わかりません。", emoji:"🤷"},
+  {en:"a lot of", jp:"たくさんの", emoji:"📚"},
+];
+
+// ===== 全単語（デフォルト + カスタム + 4級新規）=====
 const ALL_WORDS = [
-  ...WORDS.map((w, i) => ({...w, id: `d${i}`, isCustom: false})),
-  ...CUSTOM_WORDS.map((w, i) => ({...w, id: `c${i}`, isCustom: true}))
+  ...WORDS.map((w, i) => ({...w, id: `d${i}`, isCustom: false, isGrade4: false})),
+  ...CUSTOM_WORDS.map((w, i) => ({...w, id: `c${i}`, isCustom: true, isGrade4: false})),
+  ...GRADE4_WORDS.map((w, i) => ({...w, id: `g${i}`, isCustom: false, isGrade4: true}))
 ];
 
 // ===== State =====
@@ -508,16 +688,16 @@ function shuffle(array) {
 }
 
 function initQueue() {
-  // 未習得 → カスタム優先 → シャッフル
+  // 未習得 → カスタム（まちがえた単語）→ 4級新規 → 5級デフォルト の順。それぞれ中はシャッフル
   const remaining = ALL_WORDS.filter(w => !done.has(w.id));
   if (remaining.length === 0) {
     // 全部おぼえてたら、シャッフルしてリストアップ（おさらい）
     queue = shuffle(ALL_WORDS);
   } else {
-    // カスタム単語は先頭、デフォルトは後ろ。それぞれ中はちゃんとシャッフル
     const custom = shuffle(remaining.filter(w => w.isCustom));
-    const def = shuffle(remaining.filter(w => !w.isCustom));
-    queue = [...custom, ...def];
+    const grade4 = shuffle(remaining.filter(w => w.isGrade4));
+    const def = shuffle(remaining.filter(w => !w.isCustom && !w.isGrade4));
+    queue = [...custom, ...grade4, ...def];
   }
 }
 
@@ -561,6 +741,7 @@ function render() {
         <div class="english">${currentWord.en}</div>
         <div class="hint">よめたかな？</div>
         ${currentWord.isCustom ? '<div class="star-label">🌟 とくべつ もんだい</div>' : ''}
+        ${currentWord.isGrade4 ? '<div class="grade4-label">📘 4級たんご</div>' : ''}
       </div>
       <button class="btn btn-primary" id="show-btn">👀 こたえを みる</button>
     `;
@@ -581,6 +762,7 @@ function render() {
         <div class="english" style="font-size:36px;">${currentWord.en}</div>
         <div class="japanese">${currentWord.jp}</div>
         ${currentWord.isCustom ? '<div class="star-label">🌟 とくべつ もんだい</div>' : ''}
+        ${currentWord.isGrade4 ? '<div class="grade4-label">📘 4級たんご</div>' : ''}
       </div>
       <div class="btn-row">
         <button class="btn btn-again" id="again-btn">🔁 もういっかい</button>
