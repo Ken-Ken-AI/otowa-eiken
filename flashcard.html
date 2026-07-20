@@ -30,6 +30,20 @@
     color: #d63384;
     text-shadow: 2px 2px 0 #fff;
   }
+  .maruchan-header {
+    display: block;
+    margin: 0 auto 4px;
+    height: 56px;
+    width: auto;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  }
+  .maruchan-celebrate {
+    display: block;
+    margin: 0 auto 8px;
+    height: 110px;
+    width: auto;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.15));
+  }
   .progress-wrap {
     margin: 10px 16px;
     background: #fff;
@@ -58,6 +72,27 @@
     color: #d63384;
     font-weight: bold;
     min-width: 60px;
+    text-align: right;
+  }
+  /* きょうの目標（20語）バー */
+  .daily-wrap {
+    margin: 10px 16px 0;
+    background: #fff;
+    border-radius: 20px;
+    padding: 6px 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    border: 2px solid #ffca28;
+  }
+  .daily-bar { background: #ffe082; flex: 1; }
+  .daily-fill { background: linear-gradient(90deg, #ff9800, #ffca28); }
+  .daily-text {
+    color: #e65100;
+    font-weight: bold;
+    min-width: 78px;
     text-align: right;
   }
   /* カード */
@@ -197,6 +232,109 @@
     cursor: pointer;
     font-family: inherit;
   }
+  .calendar-btn {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    border: 1px solid #ffb74d;
+    color: #e65100;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    margin-right: 8px;
+  }
+  /* なつやすみカレンダー */
+  .calendar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .calendar-overlay.open { display: flex; }
+  .calendar-modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px 16px;
+    max-width: 380px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+  }
+  .calendar-modal h2 {
+    text-align: center;
+    color: #e65100;
+    font-size: 18px;
+    margin: 4px 0 2px;
+  }
+  .calendar-modal .sub {
+    text-align: center;
+    color: #777;
+    font-size: 12.5px;
+    margin-bottom: 10px;
+  }
+  .calendar-month-title {
+    text-align: center;
+    font-weight: bold;
+    color: #d63384;
+    font-size: 14px;
+    margin: 14px 0 6px;
+  }
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .calendar-weekday {
+    text-align: center;
+    font-size: 10.5px;
+    color: #aaa;
+    padding-bottom: 2px;
+  }
+  .calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: #f8f9fa;
+    font-size: 11px;
+    color: #888;
+  }
+  .calendar-day.empty { background: transparent; }
+  .calendar-day.today { border: 2px solid #ff80ab; }
+  .calendar-day.achieved {
+    background: linear-gradient(135deg, #fff59d, #ffccbc);
+    color: #d84315;
+    font-weight: bold;
+  }
+  .calendar-day .stamp { font-size: 15px; line-height: 1; margin-top: 1px; }
+  .calendar-summary {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 13px;
+    color: #e65100;
+    font-weight: bold;
+  }
+  .calendar-close-btn {
+    display: block;
+    margin: 14px auto 2px;
+    background: #d63384;
+    color: #fff;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+  }
   /* 完了画面 */
   .all-done {
     text-align: center;
@@ -231,7 +369,13 @@
 <div class="deco br">🌸</div>
 
 <div class="header">
+  <img src="img/maruchan.png" alt="まるちゃん" class="maruchan-header">
   <h1>🌸 おとわの えいたんご 🌸</h1>
+</div>
+
+<div class="daily-wrap">
+  <div class="progress-bar daily-bar"><div class="progress-fill daily-fill" id="daily-fill"></div></div>
+  <div class="daily-text" id="daily-text">きょう 0 / 20</div>
 </div>
 
 <div class="progress-wrap">
@@ -244,7 +388,12 @@
 </div>
 
 <div class="footer">
+  <button class="calendar-btn" id="calendar-btn">📅 なつやすみカレンダー</button>
   <button class="reset-btn" id="reset-btn">📝 さいしょから やりなおす</button>
+</div>
+
+<div class="calendar-overlay" id="calendar-overlay">
+  <div class="calendar-modal" id="calendar-modal"></div>
 </div>
 
 <script>
@@ -677,6 +826,101 @@ let queue = [];
 let currentWord = null;
 let showAnswer = false;
 
+// ===== きょうの目標（20語）=====
+const DAILY_GOAL = 20;
+const DAILY_DATE_KEY = 'otowa-flashcard-daily-date-v1';
+const DAILY_COUNT_KEY = 'otowa-flashcard-daily-count-v1';
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+let dailyGoal = DAILY_GOAL;
+let dailyCount = 0;
+function initDaily() {
+  const savedDate = localStorage.getItem(DAILY_DATE_KEY);
+  if (savedDate === todayStr()) {
+    dailyCount = parseInt(localStorage.getItem(DAILY_COUNT_KEY) || '0', 10);
+  } else {
+    // 日付が変わったのでリセット
+    dailyCount = 0;
+    localStorage.setItem(DAILY_DATE_KEY, todayStr());
+    localStorage.setItem(DAILY_COUNT_KEY, '0');
+  }
+  dailyGoal = DAILY_GOAL;
+}
+function saveDaily() {
+  localStorage.setItem(DAILY_COUNT_KEY, String(dailyCount));
+  saveHistoryEntry(todayStr(), dailyCount);
+}
+
+// ===== なつやすみカレンダー（2026-07-21〜08-31、20語達成した日に💮）=====
+const HISTORY_KEY = 'otowa-flashcard-history-v1';
+const CHALLENGE_START = new Date(2026, 6, 21); // 7/21
+const CHALLENGE_END = new Date(2026, 7, 31);   // 8/31
+const CHALLENGE_GOAL = DAILY_GOAL; // 延長分(+10)は含めず、最初の20語達成でスタンプ
+function loadHistory() {
+  return JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}');
+}
+function saveHistoryEntry(dateStr, count) {
+  const h = loadHistory();
+  h[dateStr] = count;
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
+}
+function buildMonthGrid(year, monthIndex, history, todayKey, tally) {
+  const firstWeekday = new Date(year, monthIndex, 1).getDay();
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  let cells = '';
+  for (let i = 0; i < firstWeekday; i++) cells += '<div class="calendar-day empty"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateObj = new Date(year, monthIndex, d);
+    const inRange = dateObj >= CHALLENGE_START && dateObj <= CHALLENGE_END;
+    if (!inRange) { cells += '<div class="calendar-day empty"></div>'; continue; }
+    const key = `${year}-${monthIndex + 1}-${d}`;
+    const cnt = history[key] || 0;
+    const achieved = cnt >= CHALLENGE_GOAL;
+    if (achieved) tally.count++;
+    const isToday = key === todayKey;
+    cells += `<div class="calendar-day ${achieved ? 'achieved' : ''} ${isToday ? 'today' : ''}">
+      <div>${d}</div>
+      ${achieved ? '<div class="stamp">💮</div>' : ''}
+    </div>`;
+  }
+  return cells;
+}
+function renderCalendar() {
+  const history = loadHistory();
+  const todayKey = todayStr();
+  const weekdayHeaders = ['日','月','火','水','木','金','土']
+    .map(w => `<div class="calendar-weekday">${w}</div>`).join('');
+  const tally = { count: 0 };
+  const julyCells = buildMonthGrid(2026, 6, history, todayKey, tally);
+  const augCells = buildMonthGrid(2026, 7, history, todayKey, tally);
+  const totalDays = Math.round((CHALLENGE_END - CHALLENGE_START) / 86400000) + 1;
+  document.getElementById('calendar-modal').innerHTML = `
+    <h2>🌻 なつやすみ たんごカレンダー</h2>
+    <div class="sub">まいにち ${CHALLENGE_GOAL}たんご できたら 💮 スタンプ！</div>
+    <div class="calendar-month-title">7がつ</div>
+    <div class="calendar-grid">${weekdayHeaders}${julyCells}</div>
+    <div class="calendar-month-title">8がつ</div>
+    <div class="calendar-grid">${weekdayHeaders}${augCells}</div>
+    <div class="calendar-summary">💮 ${tally.count} / ${totalDays} にち ゲット！</div>
+    <button class="calendar-close-btn" id="calendar-close-btn">とじる</button>
+  `;
+  document.getElementById('calendar-close-btn').addEventListener('click', closeCalendar);
+}
+function openCalendar() {
+  renderCalendar();
+  document.getElementById('calendar-overlay').classList.add('open');
+}
+function closeCalendar() {
+  document.getElementById('calendar-overlay').classList.remove('open');
+}
+function updateDailyProgress() {
+  const pct = Math.min((dailyCount / dailyGoal) * 100, 100);
+  document.getElementById('daily-fill').style.width = pct + '%';
+  document.getElementById('daily-text').textContent = `きょう ${Math.min(dailyCount, dailyGoal)} / ${dailyGoal}`;
+}
+
 // ちゃんとシャッフルする関数（Fisher-Yates アルゴリズム）
 function shuffle(array) {
   const a = [...array];
@@ -739,6 +983,10 @@ function updateProgress() {
 }
 
 function nextCard() {
+  if (dailyCount >= dailyGoal) {
+    showTodayGoalDone();
+    return;
+  }
   if (queue.length === 0) {
     initQueue();
     if (queue.length === 0) {
@@ -753,6 +1001,7 @@ function nextCard() {
 
 function render() {
   updateProgress();
+  updateDailyProgress();
   if (!currentWord) {
     showAllDone();
     return;
@@ -797,12 +1046,16 @@ function render() {
     document.getElementById('done-btn').addEventListener('click', () => {
       done.add(currentWord.id);
       saveDone();
+      dailyCount++;
+      saveDaily();
       transitionTo(nextCard);
     });
     document.getElementById('again-btn').addEventListener('click', () => {
       // キューの3〜7番目あたりに差し込み
       const insertPos = Math.min(Math.floor(Math.random() * 5) + 3, queue.length);
       queue.splice(insertPos, 0, currentWord);
+      dailyCount++;
+      saveDaily();
       transitionTo(nextCard);
     });
   }
@@ -815,6 +1068,7 @@ function transitionTo(fn) {
 }
 
 function showAllDone() {
+  updateDailyProgress();
   const main = document.getElementById('main');
   main.innerHTML = `
     <div class="all-done">
@@ -823,6 +1077,23 @@ function showAllDone() {
       <p>すごい！ ぜんぶの たんごを マスター したよ。<br>もう いちど やりなおすには、下の「さいしょから」を おしてね。</p>
     </div>
   `;
+}
+
+function showTodayGoalDone() {
+  updateDailyProgress();
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="all-done">
+      <img src="img/maruchan.png" alt="まるちゃん" class="maruchan-celebrate">
+      <h2>きょうの もくひょう たっせい！</h2>
+      <p>${dailyGoal}たんご、がんばったね！ すごい！<br>また あした つづき やろうね 🌸</p>
+      <button class="btn btn-primary" id="more-btn" style="margin-top:12px;">▶️ まだ やる（+10）</button>
+    </div>
+  `;
+  document.getElementById('more-btn').addEventListener('click', () => {
+    dailyGoal += 10;
+    nextCard();
+  });
 }
 
 document.getElementById('reset-btn').addEventListener('click', () => {
@@ -834,7 +1105,13 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   }
 });
 
+document.getElementById('calendar-btn').addEventListener('click', openCalendar);
+document.getElementById('calendar-overlay').addEventListener('click', (e) => {
+  if (e.target.id === 'calendar-overlay') closeCalendar();
+});
+
 // 起動
+initDaily();
 initQueue();
 nextCard();
 </script>
