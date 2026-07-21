@@ -161,6 +161,17 @@
     font-weight: bold;
     margin-top: 6px;
   }
+  .review-label {
+    display: inline-block;
+    background: linear-gradient(135deg, #a5d6a7, #66bb6a);
+    color: #fff;
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 6px;
+    margin-left: 4px;
+  }
   .card .english {
     font-size: 54px;
     font-weight: bold;
@@ -336,6 +347,33 @@
     cursor: pointer;
     font-family: inherit;
   }
+  /* にがてリスト */
+  .mistake-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .mistake-emoji { font-size: 26px; }
+  .mistake-word {
+    flex: 1;
+    font-family: "Times New Roman", serif;
+    font-size: 16px;
+    color: #333;
+    line-height: 1.4;
+  }
+  .mistake-jp {
+    font-family: inherit;
+    font-size: 11.5px;
+    color: #888;
+  }
+  .mistake-count {
+    color: #e64a19;
+    font-weight: bold;
+    font-size: 14px;
+    white-space: nowrap;
+  }
   /* 完了画面 */
   .all-done {
     text-align: center;
@@ -390,11 +428,16 @@
 
 <div class="footer">
   <button class="calendar-btn" id="calendar-btn">📅 なつやすみカレンダー</button>
+  <button class="calendar-btn" id="mistake-btn">📋 にがてリスト</button>
   <button class="reset-btn" id="reset-btn">📝 さいしょから やりなおす</button>
 </div>
 
 <div class="calendar-overlay" id="calendar-overlay">
   <div class="calendar-modal" id="calendar-modal"></div>
+</div>
+
+<div class="calendar-overlay" id="mistake-overlay">
+  <div class="calendar-modal" id="mistake-modal"></div>
 </div>
 
 <script>
@@ -922,6 +965,60 @@ function updateDailyProgress() {
   document.getElementById('daily-text').textContent = `きょう ${Math.min(dailyCount, dailyGoal)} / ${dailyGoal}`;
 }
 
+// ===== 「あとで復習」予約（きょうつまずいた単語を数日後にもう一度）=====
+const SNOOZE_KEY = 'otowa-flashcard-snooze-v1';
+const SNOOZE_DAYS = 2; // つまずいた単語は2日後にもう一度出す
+let snooze = JSON.parse(localStorage.getItem(SNOOZE_KEY) || '{}');
+function todayEpochDay() {
+  return Math.floor(Date.now() / 86400000);
+}
+function saveSnooze() {
+  localStorage.setItem(SNOOZE_KEY, JSON.stringify(snooze));
+}
+function isSnoozed(id) {
+  return snooze[id] !== undefined && snooze[id] > todayEpochDay();
+}
+function isDueForReview(id) {
+  return snooze[id] !== undefined && snooze[id] <= todayEpochDay();
+}
+
+// ===== にがて単語カウント（「もういっかい」を押した回数）=====
+const MISTAKE_KEY = 'otowa-flashcard-mistakes-v1';
+let mistakes = JSON.parse(localStorage.getItem(MISTAKE_KEY) || '{}');
+function saveMistakes() {
+  localStorage.setItem(MISTAKE_KEY, JSON.stringify(mistakes));
+}
+function renderMistakeList() {
+  const wordMap = {};
+  ALL_WORDS.forEach(w => { wordMap[w.id] = w; });
+  const rows = Object.entries(mistakes)
+    .filter(([id, count]) => count > 0 && wordMap[id])
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 30)
+    .map(([id, count]) => {
+      const w = wordMap[id];
+      return `<div class="mistake-row">
+        <span class="mistake-emoji">${w.emoji || '📝'}</span>
+        <span class="mistake-word">${w.en}<br><span class="mistake-jp">${w.jp}</span></span>
+        <span class="mistake-count">✕${count}</span>
+      </div>`;
+    }).join('');
+  document.getElementById('mistake-modal').innerHTML = `
+    <h2>📋 にがて たんご リスト</h2>
+    <div class="sub">「もういっかい」した かいすうが おおい じゅんに ならんでるよ</div>
+    ${rows || '<p style="text-align:center;color:#999;padding:20px 0;">まだ にがてな たんごは ないよ 🌸</p>'}
+    <button class="calendar-close-btn" id="mistake-close-btn">とじる</button>
+  `;
+  document.getElementById('mistake-close-btn').addEventListener('click', closeMistakeList);
+}
+function openMistakeList() {
+  renderMistakeList();
+  document.getElementById('mistake-overlay').classList.add('open');
+}
+function closeMistakeList() {
+  document.getElementById('mistake-overlay').classList.remove('open');
+}
+
 // ちゃんとシャッフルする関数（Fisher-Yates アルゴリズム）
 function shuffle(array) {
   const a = [...array];
@@ -954,16 +1051,19 @@ function weightedInterleave(groups) {
 }
 
 function initQueue() {
-  // 未習得の単語を「まちがえた単語:4級新規:5級デフォルト = 2:3:1」の比率で毎日混ぜる
-  const remaining = ALL_WORDS.filter(w => !done.has(w.id));
+  // 未習得（かつ復習待ちで「まだ寝かせ中」ではない）単語を
+  // 「きょう復習の番:まちがえた単語:4級新規:5級デフォルト = 3:2:3:1」の比率で毎日混ぜる
+  const remaining = ALL_WORDS.filter(w => !done.has(w.id) && !isSnoozed(w.id));
   if (remaining.length === 0) {
     // 全部おぼえてたら、シャッフルしてリストアップ（おさらい）
     queue = shuffle(ALL_WORDS);
   } else {
-    const custom = shuffle(remaining.filter(w => w.isCustom));
-    const grade4 = shuffle(remaining.filter(w => w.isGrade4));
-    const def = shuffle(remaining.filter(w => !w.isCustom && !w.isGrade4));
+    const dueReview = shuffle(remaining.filter(w => isDueForReview(w.id)));
+    const custom = shuffle(remaining.filter(w => !isDueForReview(w.id) && w.isCustom));
+    const grade4 = shuffle(remaining.filter(w => !isDueForReview(w.id) && w.isGrade4));
+    const def = shuffle(remaining.filter(w => !isDueForReview(w.id) && !w.isCustom && !w.isGrade4));
     queue = weightedInterleave([
+      { words: dueReview, weight: 3 },
       { words: custom, weight: 2 },
       { words: grade4, weight: 3 },
       { words: def, weight: 1 }
@@ -1017,6 +1117,7 @@ function render() {
         <div class="hint">よめたかな？</div>
         ${currentWord.isCustom ? '<div class="star-label">🌟 とくべつ もんだい</div>' : ''}
         ${currentWord.isGrade4 ? '<div class="grade4-label">📘 4級たんご</div>' : ''}
+        ${isDueForReview(currentWord.id) ? '<div class="review-label">🔄 ふくしゅう</div>' : ''}
       </div>
       <button class="btn btn-primary" id="show-btn">👀 こたえを みる</button>
     `;
@@ -1038,6 +1139,7 @@ function render() {
         <div class="japanese">${currentWord.jp}</div>
         ${currentWord.isCustom ? '<div class="star-label">🌟 とくべつ もんだい</div>' : ''}
         ${currentWord.isGrade4 ? '<div class="grade4-label">📘 4級たんご</div>' : ''}
+        ${isDueForReview(currentWord.id) ? '<div class="review-label">🔄 ふくしゅう</div>' : ''}
       </div>
       <div class="btn-row">
         <button class="btn btn-again" id="again-btn">🔁 もういっかい</button>
@@ -1045,13 +1147,27 @@ function render() {
       </div>
     `;
     document.getElementById('done-btn').addEventListener('click', () => {
-      done.add(currentWord.id);
-      saveDone();
+      if (currentWord._hadRetry) {
+        // きょう「もういっかい」を経由した単語は、まだ完全マスターにせず数日後にもう一度出す
+        snooze[currentWord.id] = todayEpochDay() + SNOOZE_DAYS;
+        saveSnooze();
+      } else {
+        // 一発で正解 → 復習予約があれば卒業させて解除
+        if (snooze[currentWord.id] !== undefined) {
+          delete snooze[currentWord.id];
+          saveSnooze();
+        }
+        done.add(currentWord.id);
+        saveDone();
+      }
       dailyCount++;
       saveDaily();
       transitionTo(nextCard);
     });
     document.getElementById('again-btn').addEventListener('click', () => {
+      currentWord._hadRetry = true;
+      mistakes[currentWord.id] = (mistakes[currentWord.id] || 0) + 1;
+      saveMistakes();
       // キューの3〜7番目あたりに差し込み
       const insertPos = Math.min(Math.floor(Math.random() * 5) + 3, queue.length);
       queue.splice(insertPos, 0, currentWord);
@@ -1109,6 +1225,10 @@ document.getElementById('reset-btn').addEventListener('click', () => {
 document.getElementById('calendar-btn').addEventListener('click', openCalendar);
 document.getElementById('calendar-overlay').addEventListener('click', (e) => {
   if (e.target.id === 'calendar-overlay') closeCalendar();
+});
+document.getElementById('mistake-btn').addEventListener('click', openMistakeList);
+document.getElementById('mistake-overlay').addEventListener('click', (e) => {
+  if (e.target.id === 'mistake-overlay') closeMistakeList();
 });
 
 // 起動
