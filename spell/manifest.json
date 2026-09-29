@@ -1,0 +1,11 @@
+{
+  "name": "まるちゃんの きいて かく えいたんご",
+  "short_name": "えいたんご",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fff1f6",
+  "theme_color": "#c2185b",
+  "icons": [
+    { "src": "img/maruchan.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

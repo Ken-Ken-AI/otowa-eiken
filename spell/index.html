@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="きいてかく">
+  <link rel="apple-touch-icon" href="img/maruchan.png">
+  <link rel="manifest" href="manifest.json">
+  <title>まるちゃんの きいて かく えいたんご</title>
+  <style>
+    :root { --pink:#c2185b; --pink-pale:#fce4ec; --ink:#222; --sub:#666;
+            --line:#e0c4cf; --ok:#2e7d32; --warn:#ef6c00; }
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html,body { margin:0; padding:0; }
+    body {
+      font-family:"Hiragino Maru Gothic ProN","ヒラギノ丸ゴ ProN W4","メイリオ",sans-serif;
+      color:var(--ink);
+      background:linear-gradient(180deg,#fff1f6 0%,#fdf7ff 55%,#f3fbff 100%);
+      background-attachment:fixed; touch-action:manipulation;
+      -webkit-user-select:none; user-select:none;
+    }
+    .app { max-width:560px; margin:0 auto; padding:12px 12px 32px; min-height:100vh; }
+    .screen { display:none; } .screen.on { display:block; }
+    h1 { font-size:21px; color:var(--pink); text-align:center; margin:8px 0 4px; }
+    h2 { font-size:17px; color:var(--pink); margin:16px 0 6px; }
+
+    .maru { display:block; width:120px; height:120px; margin:4px auto 0; object-fit:contain; }
+    .quizmaru { display:block; width:auto; height:78px; margin:0 auto; object-fit:contain; }
+    .quizmaru.pop { animation:pop .45s; }
+    @keyframes pop { 0%{transform:scale(1)} 35%{transform:scale(1.18) rotate(-4deg)}
+                     70%{transform:scale(.96) rotate(3deg)} 100%{transform:scale(1)} }
+    .bubble { background:#fff; border:2px solid var(--line); border-radius:20px; padding:12px 16px;
+              margin:8px auto 14px; text-align:center; font-size:15px; line-height:1.7; box-shadow:0 2px 0 #f2dde5; }
+
+    button { font-family:inherit; font-size:17px; color:var(--ink); border:2px solid var(--line);
+             background:#fff; border-radius:16px; padding:12px 10px; cursor:pointer; }
+    button:active { transform:translateY(1px); }
+    button:disabled { opacity:.4; }
+    .big { display:block; width:100%; font-size:19px; padding:16px 12px; margin:9px 0; text-align:left; }
+    .big small { display:block; font-size:12px; color:var(--sub); margin-top:4px; }
+    .primary { background:var(--pink); border-color:var(--pink); color:#fff; font-weight:bold; }
+    .back { font-size:14px; padding:8px 12px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .topbar .title { font-size:15px; color:var(--pink); font-weight:bold; }
+
+    .chips { display:grid; gap:7px; }
+    .chips.c2 { grid-template-columns:repeat(2,1fr); }
+    .chips.c3 { grid-template-columns:repeat(3,1fr); }
+    .chips.c4 { grid-template-columns:repeat(4,1fr); }
+    .chip { padding:10px 2px; font-size:15px; line-height:1.3; }
+    .chip small { display:block; font-size:11px; color:var(--sub); }
+    .chip.sel { border:3px solid var(--pink); background:var(--pink-pale); font-weight:bold; }
+    .chip.sel::before { content:"✓ "; color:var(--pink); }
+
+    /* もんだい */
+    .progress { height:11px; background:#fff; border:2px solid var(--line); border-radius:8px; overflow:hidden; margin:8px 0 2px; }
+    .progress > div { height:100%; width:0; background:var(--pink); transition:width .2s; }
+    .count { display:flex; justify-content:space-between; font-size:13px; color:var(--sub); }
+
+    .listen { display:block; width:100%; font-size:26px; padding:16px; margin:8px 0 4px;
+              background:var(--pink); border-color:var(--pink); color:#fff; font-weight:bold; }
+    .listen small { display:block; font-size:13px; font-weight:normal; margin-top:2px; }
+
+    /* こたえを 入れる マス */
+    .slots { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:12px 0 6px; min-height:56px; }
+    .slot { width:40px; height:52px; border-bottom:4px solid var(--line); font-size:30px; font-weight:bold;
+            display:flex; align-items:center; justify-content:center; text-transform:lowercase;
+            font-family:ui-monospace,Menlo,monospace; }
+    .slot.here { border-bottom-color:var(--pink); background:#fff6fa; }
+    .slot.good { color:var(--ok); border-bottom-color:var(--ok); }
+    .slot.bad  { color:var(--warn); border-bottom-color:var(--warn); text-decoration:line-through; }
+    .slot .fix { display:block; font-size:12px; color:var(--ok); text-decoration:none; }
+    .hintline { text-align:center; font-size:15px; color:var(--sub); min-height:1.6em; }
+    .meaning { text-align:center; font-size:19px; margin:2px 0 4px; }
+    .meaning .emo { font-size:30px; }
+
+    .judge { text-align:center; min-height:46px; font-size:17px; line-height:1.6; }
+    .judge .mark { font-size:26px; font-weight:bold; }
+    .judge.good .mark { color:var(--ok); }
+    .judge.bad .mark { color:var(--warn); }
+
+    /* A-Z キーボード */
+    .kb { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-top:8px; }
+    .kb button { font-size:19px; height:46px; padding:0; font-weight:bold;
+                 font-family:ui-monospace,Menlo,monospace; text-transform:lowercase; }
+    .kb .fn { font-size:13px; font-family:inherit; }
+    .tools2 { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:7px; }
+    .tools2 button { font-size:14px; }
+    .next { display:none; width:100%; margin-top:8px; font-size:19px; padding:15px; }
+    .next.on { display:block; }
+
+    /* けっか・ノート */
+    .result-num { text-align:center; font-size:22px; font-weight:bold; margin:6px 0; }
+    .item { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px;
+            background:#fff; border:2px solid var(--line); border-radius:14px; padding:8px 12px; margin:6px 0; }
+    .item .emo { font-size:24px; }
+    .item .en { font-size:20px; font-weight:bold; font-family:ui-monospace,Menlo,monospace; }
+    .item .jp { font-size:13px; color:var(--sub); }
+    .item .n { font-size:13px; color:var(--sub); white-space:nowrap; }
+    .item.done { border-style:dashed; background:#fafafa; }
+    .item.done .en { color:var(--sub); }
+    .empty { text-align:center; color:var(--sub); font-size:15px; line-height:1.9; padding:10px; }
+    .vstat { text-align:center; font-size:13px; color:var(--sub); min-height:1.4em; margin:2px 0; }
+    .vstat.bad { color:var(--warn); font-weight:bold; }
+    .vstat pre { text-align:left; font-size:11px; background:#fff; border:2px solid var(--line);
+                 border-radius:10px; padding:8px; white-space:pre-wrap; margin:6px 0; }
+    .danger { font-size:13px; color:var(--sub); margin-top:22px; }
+    .note { font-size:13px; color:var(--sub); line-height:1.8; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ホーム -->
+  <section class="screen on" id="home">
+    <h1>まるちゃんの きいて かく えいたんご</h1>
+    <img class="maru" src="img/maruchan.png" alt="まるちゃん" onerror="this.style.display='none'">
+    <div class="bubble" id="homeMsg"></div>
+    <button class="big" data-go="setup">① れんしゅう<small>えいごを きいて、スペルを かく</small></button>
+    <button class="big" data-go="note" id="noteBtn">② まちがえノート<small>まちがえた たんごが あつまる</small></button>
+    <button class="big" data-go="record">③ きろく<small>おぼえた たんごの かず</small></button>
+    <div style="text-align:center; margin-top:12px;">
+      <button class="back" id="voiceBtn"></button>
+      <button class="back" id="testBtn">🔊 こえテスト</button>
+    </div>
+    <div class="vstat" id="homeVstat"></div>
+  </section>
+
+  <!-- じゅんび -->
+  <section class="screen" id="setup">
+    <div class="topbar">
+      <button class="back" data-go="home">← もどる</button>
+      <span class="title">れんしゅうの じゅんび</span><span style="width:70px"></span>
+    </div>
+    <h2>どの たんご？</h2>
+    <div class="chips c2" id="setLv"></div>
+    <h2>ながさ</h2>
+    <div class="chips c4" id="setLen">
+      <button class="chip" data-v="all">ぜんぶ</button>
+      <button class="chip" data-v="s">みじかい<small>2〜4字</small></button>
+      <button class="chip" data-v="m">ふつう<small>5〜6字</small></button>
+      <button class="chip" data-v="l">ながい<small>7字〜</small></button>
+    </div>
+    <h2>なんもん？</h2>
+    <div class="chips c4" id="setN">
+      <button class="chip" data-v="5">5もん</button>
+      <button class="chip" data-v="10">10もん</button>
+      <button class="chip" data-v="20">20もん</button>
+      <button class="chip" data-v="0">ぜんぶ</button>
+    </div>
+    <div class="chips" style="margin-top:7px">
+      <button class="chip" id="weakOnly">にがてな たんごだけ</button>
+    </div>
+    <div class="bubble" id="setupMsg"></div>
+    <button class="big primary" id="startBtn" style="text-align:center">スタート！</button>
+  </section>
+
+  <!-- もんだい -->
+  <section class="screen" id="quiz">
+    <div class="topbar">
+      <button class="back" id="quitBtn">← やめる</button>
+      <span class="title" id="quizTitle"></span><span style="width:70px"></span>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+    <div class="count"><span id="countText"></span><span id="missText"></span></div>
+    <img class="quizmaru" id="quizMaru" src="img/maru_think.jpg" alt="まるちゃん" onerror="this.style.display='none'">
+    <button class="listen" id="listenBtn">🔊 もういちど きく<small>おして なんども きけるよ</small></button>
+    <div class="vstat" id="vstat"></div>
+    <div class="meaning" id="meaning"></div>
+    <div class="slots" id="slots"></div>
+    <div class="hintline" id="hintLine"></div>
+    <div class="judge" id="judge"></div>
+    <div class="kb" id="kb"></div>
+    <div class="tools2">
+      <button id="hintMean">💡 いみを みる</button>
+      <button id="hintFirst">💡 さいしょの 字</button>
+    </div>
+    <button class="next primary" id="nextBtn">つぎへ →</button>
+  </section>
+
+  <!-- けっか -->
+  <section class="screen" id="result">
+    <h1>おつかれさま！</h1>
+    <img class="maru" id="resultMaru" src="img/maruchan.png" alt="まるちゃん" onerror="this.style.display='none'">
+    <div class="bubble" id="resultMsg"></div>
+    <div class="result-num" id="resultNum"></div>
+    <div id="missWrap" style="display:none">
+      <h2>もういちど みておこう</h2>
+      <div id="missList"></div>
+    </div>
+    <button class="big primary" id="againBtn" style="text-align:center">もういちど</button>
+    <button class="big" data-go="home" style="text-align:center">ホームへ</button>
+  </section>
+
+  <!-- まちがえノート -->
+  <section class="screen" id="note">
+    <div class="topbar">
+      <button class="back" data-go="home">← もどる</button>
+      <span class="title">まちがえノート</span><span style="width:70px"></span>
+    </div>
+    <img class="quizmaru" src="img/maru_think.jpg" alt="まるちゃん" onerror="this.style.display='none'">
+    <div class="bubble" id="noteMsg"></div>
+    <button class="big primary" id="notePractice" style="text-align:center">ノートの たんごだけ れんしゅう</button>
+    <h2 id="noteYetHead">まだ にがてな たんご</h2>
+    <div id="noteYet"></div>
+    <h2 id="noteDoneHead">そつぎょう🎓</h2>
+    <div id="noteDone"></div>
+  </section>
+
+  <!-- きろく -->
+  <section class="screen" id="record">
+    <div class="topbar">
+      <button class="back" data-go="home">← もどる</button>
+      <span class="title">きろく</span><span style="width:70px"></span>
+    </div>
+    <div class="bubble" id="recMsg"></div>
+    <h2>レベルごと</h2>
+    <div id="recLv"></div>
+    <div class="note" style="margin-top:14px">
+      ◎ばっちり（3かい つづけて せいかい）　○できた　△もうすこし　✕にがて　・まだ
+    </div>
+    <div class="danger"><button class="back" id="resetBtn">きろくを ぜんぶ けす</button></div>
+  </section>
+
+</div>
+
+<script src="words.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const LV_ALL = ["キッズアップ", "きほん", "5きゅう", "4きゅう"];
+
+// ★words.js が 読めないと ここから先が ぜんぶ 動かなくなり、ボタンも 反応しなく なる。
+//   黙って 死なないよう、画面に はっきり 出して 止める（2026-09-30）。
+if (typeof WORD_BANK === "undefined" || !WORD_BANK.length) {
+  document.body.innerHTML =
+    "<div style='padding:24px;font-family:sans-serif;line-height:1.9'>"
+    + "<h2 style='color:#c2185b'>たんごの ファイルが よめません</h2>"
+    + "<p>index.html と おなじ フォルダに <b>words.js</b> が ひつようです。"
+    + "2つを いっしょに おいてから、もういちど ひらいてください。</p></div>";
+  throw new Error("words.js not loaded");
+}
+
+// ===== きろく（この たんまつの なかだけ）=====
+const STORE_KEY = "spell_v1";
+const KEEP = 8;
+let store = load();
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (s && s.facts) { s.miss = s.miss || {}; return s; }
+  } catch (e) {}
+  return { facts: {}, miss: {}, voice: true };
+}
+function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) {} }
+function addResult(en, ok) {
+  const h = store.facts[en] || (store.facts[en] = []);
+  h.push(ok ? 1 : 0);
+  if (h.length > KEEP) h.splice(0, h.length - KEEP);
+  if (!ok) store.miss[en] = (store.miss[en] || 0) + 1;
+  save();
+}
+// 0=まだ 1=にがて 2=もうすこし 3=できた 4=ばっちり
+function level(en) {
+  const h = store.facts[en];
+  if (!h || !h.length) return 0;
+  const l3 = h.slice(-3);
+  if (l3.length === 3 && l3.every(x => x)) return h.length >= 4 && h.slice(-4).every(x => x) ? 4 : 3;
+  const l5 = h.slice(-5);
+  const miss = l5.filter(x => !x).length;
+  if (!l5[l5.length - 1] || miss >= 2) return 1;
+  return 2;
+}
+const MARK = ["・", "✕", "△", "○", "◎"];
+const byEn = {};
+WORD_BANK.forEach(w => byEn[w.en] = w);
+function noteItems() {
+  return Object.keys(store.miss).filter(en => byEn[en])
+    .map(en => ({ w: byEn[en], n: store.miss[en], lv: level(en) }))
+    .sort((a, b) => b.n - a.n || a.w.en.localeCompare(b.w.en));
+}
+const notePending = () => noteItems().filter(i => i.lv < 3);
+
+// ===== こえ（英語）=====
+// ★九九アプリで つまづいた ところを ここでも 避ける（2026-09-29 の実測より）:
+//   ①cancel() の 直後に しゃべらせない ②鳴らない ときの 見張り番 を おく
+let enVoice = null;
+function pickVoice() {
+  if (!("speechSynthesis" in window)) return;
+  const vs = speechSynthesis.getVoices().filter(v => /^en(-|_)/i.test(v.lang));
+  const us = vs.filter(v => /en[-_]US/i.test(v.lang));
+  const pool = us.length ? us : vs;
+  // 女の人の声を ゆうせん（ほかの 英語アプリと 同じ 考え方）
+  enVoice = pool.find(v => /samantha/i.test(v.name))
+         || pool.find(v => /(karen|moira|tessa|ava|allison|susan)/i.test(v.name))
+         || pool.find(v => !/(alex|daniel|fred|tom|aaron|oliver)/i.test(v.name))
+         || pool[0] || null;
+}
+if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+
+// ★2026-09-30 実測（けんたろうさんの Mac・Chrome）:
+//   ページを ひらいた あと「さいしょの ひとこと」が、何も つまって いない（speaking=false）のに
+//   始まらず 飲みこまれる。9/29 の しらべで「cancel() を 1回 流すと その後は ぜんぶ 鳴る」と
+//   分かっている ので、ひらいた ときに 先に 流しておく。
+//   ★ここで やる のが だいじ。ボタンを おした 直後に cancel すると、その speak が 飲まれる。
+function primeVoice() {
+  if (!("speechSynthesis" in window)) return;
+  try { speechSynthesis.cancel(); speechSynthesis.resume(); } catch (e) {}
+}
+primeVoice();
+setTimeout(primeVoice, 250);    // 声の一覧が あとから 読まれる 端末むけに もう一度
+// ★2026-09-30：さいしょに 音の出ない ひとことを しゃべらせる「カギあけ」は やめた。
+//   あれが つまって 居座ると、あとの こえが ぜんぶ その うしろで 待たされる。
+//   じっさいに しゃべるのは ボタンを おした 直後なので、カギあけ 自体が いらない。
+function hush() {
+  if ("speechSynthesis" in window && (speechSynthesis.speaking || speechSynthesis.pending))
+    speechSynthesis.cancel();
+}
+// 音が 出たか どうかを 画面に 出す（出ない ときだけ 知らせる）
+function vstat(msg, bad) {
+  const el = document.getElementById("vstat");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.className = "vstat" + (bad ? " bad" : "");
+}
+function speakRaw(text, rate, onend) {
+  if (!store.voice || !("speechSynthesis" in window)) { if (onend) setTimeout(onend, 400); return; }
+  let fin = false;
+  const done = () => { if (fin) return; fin = true; if (onend) onend(); };
+  // try=0,1,2 の 3回まで。飲まれたら cancel で 解いてから もういちど。
+  const go = try_ => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    u.rate = rate || 0.85;
+    if (enVoice) u.voice = enVoice;
+    let started = false;
+    u.onstart = () => { started = true; vstat(""); };
+    u.onend = done;
+    u.onerror = () => { if (started) done(); };
+    speechSynthesis.speak(u);
+    setTimeout(() => {
+      if (started || fin) return;
+      if (try_ < 2) {
+        try { speechSynthesis.cancel(); } catch (e) {}
+        setTimeout(() => go(try_ + 1), 180);
+      } else {
+        vstat("⚠ 音が 出せなかった。Chrome を いちど 終了して ひらき直すと 直る ことが あるよ", true);
+        done();                       // 止まらないよう 先へ 進める
+      }
+    }, 700);
+  };
+  go(0);
+}
+// ★ここは 2つの わなが ある（2026-09-29〜30 の実測）:
+//   ① cancel() の 直後（0秒）に speak すると にぎりつぶされる
+//   ② setTimeout を はさむと「ゆび操作では ない」と みなされて 音が 出ない ことが ある
+//   → しゃべって いない ときは その場で そのまま。かぶる ときだけ 止めて 0.13秒 まつ。
+function say(text, rate, onend) {
+  if (!("speechSynthesis" in window)) { speakRaw(text, rate, onend); return; }
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    speechSynthesis.cancel();
+    setTimeout(() => speakRaw(text, rate, onend), 130);
+  } else {
+    speakRaw(text, rate, onend);
+  }
+}
+
+// ===== 先に つくって おいた こえ（voice/ の mp3）=====
+// ★2026-09-30：Chrome が その場で しゃべる しくみを 飲みこんで 音を 出さない（Safari は 鳴る）。
+//   音声ファイルの 再生は Chrome でも 正常なので、あれば そちらを つかう。
+//   作り方は _tools/make_voice.py（Mac の say コマンド＝本物の 英語の声）。
+let clipOK = null;          // null=まだ わからない / false=ファイルが 無い → その場で しゃべる
+let curAudio = null;
+function stopClip() {
+  if (!curAudio) return;
+  try { curAudio.pause(); curAudio.currentTime = 0; } catch (e) {}
+  curAudio = null;
+}
+// name＝"w_apple"（たんご）/ "s_apple"（1字ずつ）。無ければ text を その場で しゃべる。
+function voice(name, text, rate, onend) {
+  if (!store.voice) { if (onend) setTimeout(onend, 300); return; }
+  stopClip();
+  let done = false, used = false;
+  const fin = () => { if (done) return; done = true; if (onend) onend(); };
+  const fallback = () => { if (used) return; used = true; say(text, rate, fin); };
+  if (clipOK === false || !name) { fallback(); return; }
+  let a;
+  try { a = new Audio("voice/" + name + ".mp3"); } catch (e) { fallback(); return; }
+  curAudio = a;
+  a.onplaying = () => { clipOK = true; used = true; vstat(""); };
+  a.onended = () => { if (curAudio === a) curAudio = null; fin(); };
+  a.onerror = () => { clipOK = false; if (curAudio === a) curAudio = null; fallback(); };
+  const p = a.play();
+  if (p && p.catch) p.catch(() => { if (curAudio === a) curAudio = null; fallback(); });
+  setTimeout(() => {          // 鳴りも エラーも しないまま 止まる ばあいの 見張り番
+    if (used || done) return;
+    if (curAudio === a) stopClip();
+    fallback();
+  }, 1400);
+}
+// ひらいた ときに 1回だけ「mp3 が あるか」を しらべる（さいしょの もんだいで 待たせない ため）
+(function probeClips() {
+  try {
+    const a = new Audio("voice/w_apple.mp3");
+    a.preload = "metadata";
+    a.onloadedmetadata = () => { if (clipOK === null) clipOK = true; };
+    a.onerror = () => { if (clipOK === null) clipOK = false; };
+    a.load();
+  } catch (e) { clipOK = false; }
+})();
+const clipName = (pre, en) => pre + "_" + en.toLowerCase();
+function drawVoiceBtn() { $("voiceBtn").textContent = store.voice ? "🔊 こえ：あり" : "🔇 こえ：なし"; }
+$("voiceBtn").addEventListener("click", () => {
+  store.voice = !store.voice; save(); drawVoiceBtn();
+  if (store.voice) say("hello");
+});
+// ★音が 出ない ときの 調べもの。ブラウザが 言っている ことを そのまま 画面に 出す。
+$("testBtn").addEventListener("click", () => {
+  const el = $("homeVstat");
+  if (!("speechSynthesis" in window)) { el.innerHTML = "<b>このブラウザには しゃべる しくみが ない</b>"; return; }
+  const vs = speechSynthesis.getVoices();
+  const en = vs.filter(v => /^en(-|_)/i.test(v.lang));
+  const log = [];
+  const show = () => el.innerHTML =
+    "<pre>声ぜんぶ " + vs.length + "こ ／ 英語 " + en.length + "こ\n"
+    + "つかう声: " + (enVoice ? enVoice.name + " (" + enVoice.lang + ")" : "なし（ブラウザまかせ）") + "\n"
+    + "こえ設定: " + (store.voice ? "あり" : "なし ← ここが なし だと 鳴らない") + "\n"
+    + "ひらき方: " + location.protocol + "\n"
+    + log.join("\n") + "</pre>";
+  show();
+  // アプリ本体と おなじ「飲まれたら 解いて やり直す」を ここでも やる
+  let ok = false;
+  const attempt = n => {
+    const u = new SpeechSynthesisUtterance("apple");
+    u.lang = "en-US"; u.rate = 0.8;
+    if (enVoice) u.voice = enVoice;
+    u.onstart = () => { ok = true; log.push("→ " + n + "回目：しゃべり はじめた ✓"); show(); };
+    u.onend   = () => { log.push("→ " + n + "回目：おわった ✓ 音が 聞こえたなら OK"); show(); };
+    u.onerror = e => { log.push("→ " + n + "回目：エラー " + (e && e.error)); show(); };
+    log.push(n + "回目を おねがい（speaking=" + speechSynthesis.speaking
+             + " pending=" + speechSynthesis.pending + "）");
+    show();
+    speechSynthesis.speak(u);
+    setTimeout(() => {
+      if (ok) return;
+      if (n < 3) {
+        log.push("  0.7秒 始まらない → cancel で 解いて やり直す");
+        show();
+        try { speechSynthesis.cancel(); } catch (e) {}
+        setTimeout(() => attempt(n + 1), 180);
+      } else {
+        log.push("★3回とも ダメ。Chrome を 完全に 終了して 開き直してみて");
+        show();
+      }
+    }, 700);
+  };
+  attempt(1);
+});
+
+// ===== がめん =====
+function go(id) {
+  hush();
+  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id));
+  window.scrollTo(0, 0);
+  if (id === "home") drawHome();
+  if (id === "setup") drawSetup();
+  if (id === "note") drawNote();
+  if (id === "record") drawRecord();
+}
+document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
+
+function drawHome() {
+  drawVoiceBtn();
+  const done = WORD_BANK.filter(w => level(w.en) >= 3).length;
+  $("homeMsg").textContent = done === 0
+    ? "えいごを きいて、スペルを かいてみよう！"
+    : WORD_BANK.length + "この うち " + done + "こ かけるように なったよ！";
+  const n = notePending().length;
+  $("noteBtn").innerHTML = "② まちがえノート<small>"
+    + (n ? "にがてが " + n + "こ あつまってる" : "まちがえた たんごが あつまる") + "</small>";
+}
+
+// ===== じゅんび =====
+const conf = { lv: "キッズアップ", len: "all", n: 10, weak: false, note: false };
+const LEN_OK = { all: () => true, s: n => n <= 4, m: n => n >= 5 && n <= 6, l: n => n >= 7 };
+
+function pool() {
+  if (conf.note) { const l = notePending().map(i => i.w); shuffle(l); return l; }
+  let l = WORD_BANK.filter(w => w.lvs.includes(conf.lv) && LEN_OK[conf.len](w.en.length));
+  if (conf.weak) l = l.filter(w => [1, 2].includes(level(w.en)));
+  shuffle(l);
+  return conf.n > 0 ? l.slice(0, conf.n) : l;
+}
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } }
+
+function drawSetup() {
+  conf.note = false;
+  const box = $("setLv"); box.innerHTML = "";
+  LV_ALL.forEach(lv => {
+    const n = WORD_BANK.filter(w => w.lvs.includes(lv)).length;
+    const b = document.createElement("button");
+    b.className = "chip" + (conf.lv === lv ? " sel" : "");
+    b.innerHTML = lv + "<small>" + n + "こ</small>";
+    b.addEventListener("click", () => { conf.lv = lv; drawSetup(); });
+    box.appendChild(b);
+  });
+  $("setLen").querySelectorAll(".chip").forEach(b => b.classList.toggle("sel", b.dataset.v === conf.len));
+  $("setN").querySelectorAll(".chip").forEach(b => b.classList.toggle("sel", Number(b.dataset.v) === conf.n));
+  $("weakOnly").classList.toggle("sel", conf.weak);
+  const n = pool().length;
+  $("startBtn").disabled = n === 0;
+  $("setupMsg").textContent = n === 0
+    ? "えらんだ ところに たんごが ないよ。ほかを えらんでね。"
+    : n + "もん やるよ。きこえた とおりに スペルを かいてね。";
+}
+$("setLen").querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => { conf.len = b.dataset.v; drawSetup(); }));
+$("setN").querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => { conf.n = Number(b.dataset.v); drawSetup(); }));
+$("weakOnly").addEventListener("click", () => { conf.weak = !conf.weak; drawSetup(); });
+$("startBtn").addEventListener("click", startQuiz);
+$("againBtn").addEventListener("click", () => { if (pool().length) startQuiz(); else go("setup"); });
+
+// ===== もんだい =====
+let q = null;
+function startQuiz() {
+  const list = pool();
+  if (!list.length) return;
+  q = { queue: list, total: list.length, done: 0, input: "", locked: false,
+        missed: [], usedHint: false };
+  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === "quiz"));
+  window.scrollTo(0, 0);
+  $("quizTitle").textContent = conf.note ? "まちがえノート" : conf.lv;
+  showWord();
+}
+function cur() { return q.queue[0]; }
+function setMaru(kind) {
+  const img = $("quizMaru"); if (!img) return;
+  img.src = kind === "ok" ? "img/maru_ok.jpg" : "img/maru_think.jpg";
+  img.style.display = "";
+  if (kind === "ok") { img.classList.remove("pop"); void img.offsetWidth; img.classList.add("pop"); }
+  else img.classList.remove("pop");
+}
+function showWord() {
+  q.input = ""; q.locked = false; q.usedHint = false;
+  $("judge").className = "judge"; $("judge").innerHTML = "";
+  $("nextBtn").classList.remove("on");
+  $("kb").style.visibility = "visible";
+  $("meaning").innerHTML = "";
+  $("hintLine").textContent = "";
+  $("hintMean").disabled = false; $("hintFirst").disabled = false;
+  setMaru("think");
+  drawSlots();
+  $("bar").style.width = (q.done / q.total * 100) + "%";
+  $("countText").textContent = (q.done + 1) + " / " + q.total + " もんめ";
+  $("missText").textContent = q.missed.length ? "まちがい " + q.missed.length + "こ" : "";
+  voice(clipName("w", cur().en), cur().en, 0.8);
+}
+// word を わたさなければ いまの もんだい。はんてい後は すでに つぎへ 進んでいるので
+// かならず「答えた たんご」を わたす（2026-09-30：ここが 1つ ずれていて 色分けが 出なかった）
+function drawSlots(showAnswer, word) {
+  const w = word || cur(), box = $("slots");
+  box.innerHTML = "";
+  for (let i = 0; i < w.en.length; i++) {
+    const d = document.createElement("div");
+    d.className = "slot";
+    const typed = q.input[i] || "";
+    if (showAnswer) {
+      const right = w.en[i].toLowerCase();
+      if (typed && typed === right) { d.className += " good"; d.textContent = typed; }
+      else if (typed) { d.className += " bad"; d.innerHTML = typed + "<span class='fix'>" + right + "</span>"; }
+      else { d.className += " bad"; d.innerHTML = "&nbsp;<span class='fix'>" + right + "</span>"; }
+    } else {
+      if (i === q.input.length) d.className += " here";
+      d.textContent = typed;
+    }
+    box.appendChild(d);
+  }
+}
+function press(k) {
+  if (!q || q.locked) return;
+  if (k === "del") q.input = q.input.slice(0, -1);
+  else if (k === "go") { if (q.input.length) judge(); return; }
+  else if (q.input.length < cur().en.length) q.input += k;
+  drawSlots();
+  // ★ぜんぶ うまったら そのまま はんてい（九九アプリと 同じ考え＝「けってい」を おさせない）
+  if (k !== "del" && q.input.length === cur().en.length) judge();
+}
+function judge() {
+  const w = cur();
+  const ok = q.input.toLowerCase() === w.en.toLowerCase();
+  addResult(w.en, ok && !q.usedHint);      // ヒントを 見た回は「できた」に しない
+  q.locked = true;
+  q.queue.shift(); q.done++;
+  $("bar").style.width = (q.done / q.total * 100) + "%";
+  $("kb").style.visibility = "hidden";
+  $("hintMean").disabled = true; $("hintFirst").disabled = true;
+  $("meaning").innerHTML = "<span class='emo'>" + w.emoji + "</span> " + w.jp;
+  drawSlots(true, w);
+  if (ok) {
+    setMaru("ok");
+    $("judge").className = "judge good";
+    $("judge").innerHTML = "<span class='mark'>◯ せいかい！</span> ✨" + (q.usedHint ? "<br><small>ヒントなしでも やってみよう</small>" : "");
+  } else {
+    setMaru("think");
+    q.missed.push(w);
+    $("judge").className = "judge bad";
+    $("judge").innerHTML = "<span class='mark'>✕ おしい！</span><br>ただしくは <b>" + w.en + "</b>";
+    $("missText").textContent = "まちがい " + q.missed.length + "こ";
+  }
+  // たんご → すこし あけて → 1字ずつ（c. a. t.）
+  voice(clipName("w", w.en), w.en, 0.7,
+        () => setTimeout(() => voice(clipName("s", w.en), spellOut(w.en), 0.75), 250));
+  $("nextBtn").classList.add("on");
+  $("nextBtn").textContent = q.queue.length ? "つぎへ →" : "けっかを みる →";
+}
+// スペルを 1字ずつ 読ませる（c-a-t）。ピリオドで 間が あく
+const spellOut = s => s.split("").join(". ") + ".";
+$("nextBtn").addEventListener("click", () => { hush(); q.queue.length ? showWord() : finish(); });
+$("quitBtn").addEventListener("click", () => { q = null; go("setup"); });
+$("listenBtn").addEventListener("click", () => { if (q) voice(clipName("w", cur().en), cur().en, 0.75); });
+$("hintMean").addEventListener("click", () => {
+  if (!q || q.locked) return;
+  q.usedHint = true;
+  $("meaning").innerHTML = "<span class='emo'>" + cur().emoji + "</span> " + cur().jp;
+});
+$("hintFirst").addEventListener("click", () => {
+  if (!q || q.locked) return;
+  q.usedHint = true;
+  $("hintLine").textContent = "さいしょの 字は「" + cur().en[0].toLowerCase() + "」・ぜんぶで " + cur().en.length + "字";
+});
+
+(function buildKb() {
+  "abcdefghijklmnopqrstuvwxyz".split("").forEach(c => {
+    const b = document.createElement("button");
+    b.textContent = c;
+    b.addEventListener("click", () => press(c));
+    $("kb").appendChild(b);
+  });
+  const del = document.createElement("button");
+  del.textContent = "← けす"; del.className = "fn";
+  del.addEventListener("click", () => press("del"));
+  $("kb").appendChild(del);
+})();
+document.addEventListener("keydown", e => {
+  if (!$("quiz").classList.contains("on")) return;
+  if (/^[a-zA-Z]$/.test(e.key)) press(e.key.toLowerCase());
+  else if (e.key === "Backspace") { e.preventDefault(); press("del"); }
+  else if (e.key === "Enter") {
+    e.preventDefault();
+    if ($("nextBtn").classList.contains("on")) $("nextBtn").click(); else press("go");
+  }
+});
+
+// ===== けっか =====
+function finish() {
+  const perfect = q.missed.length === 0;
+  $("resultMaru").src = perfect ? "img/maru_king.jpg" : "img/maru_ok.jpg";
+  $("resultMaru").style.display = "";
+  $("resultMsg").textContent = perfect
+    ? "ぜんぶ かけた！ すごい！"
+    : "がんばったね！ まちがえた たんごは ノートに あつめておいたよ。";
+  $("resultNum").textContent = q.total + "もんちゅう " + (q.total - q.missed.length) + "もん せいかい";
+  $("missWrap").style.display = perfect ? "none" : "block";
+  const box = $("missList"); box.innerHTML = "";
+  q.missed.forEach(w => box.appendChild(itemRow({ w: w, n: store.miss[w.en] || 1, lv: level(w.en) })));
+  q = null;
+  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === "result"));
+  window.scrollTo(0, 0);
+}
+
+// ===== まちがえノート =====
+function itemRow(it, done) {
+  const d = document.createElement("div");
+  d.className = "item" + (done ? " done" : "");
+  d.innerHTML = "<span class='emo'>" + it.w.emoji + "</span>"
+    + "<span><span class='en'>" + it.w.en + "</span><br><span class='jp'>" + it.w.jp + "</span></span>"
+    + "<span class='n'>" + MARK[it.lv] + " " + it.n + "かい</span>";
+  d.addEventListener("click", () => voice(clipName("w", it.w.en), it.w.en, 0.7,
+    () => setTimeout(() => voice(clipName("s", it.w.en), spellOut(it.w.en), 0.75), 250)));
+  return d;
+}
+function drawNote() {
+  const all = noteItems();
+  const yet = all.filter(i => i.lv < 3), done = all.filter(i => i.lv >= 3);
+  $("noteMsg").textContent = !all.length
+    ? "まだ まちがえた たんごは ないよ。れんしゅうを すると ここに あつまるよ。"
+    : !yet.length ? "ノートの たんごは ぜんぶ かけるように なったよ！"
+    : "にがてが " + yet.length + "こ。おすと はつおんと スペルが きけるよ。";
+  const fill = (box, items, isDone) => { box.innerHTML = ""; items.forEach(i => box.appendChild(itemRow(i, isDone))); };
+  fill($("noteYet"), yet, false);
+  fill($("noteDone"), done, true);
+  $("noteYetHead").style.display = yet.length ? "" : "none";
+  $("noteDoneHead").style.display = done.length ? "" : "none";
+  $("notePractice").style.display = yet.length ? "" : "none";
+  if (!all.length) $("noteYet").innerHTML = "<div class='empty'>まちがえた たんごが ここに たまっていくよ。</div>";
+}
+$("notePractice").addEventListener("click", () => { if (notePending().length) { conf.note = true; startQuiz(); } });
+
+// ===== きろく =====
+function drawRecord() {
+  const done = WORD_BANK.filter(w => level(w.en) >= 3).length;
+  $("recMsg").textContent = WORD_BANK.length + "この うち " + done + "こ かけるように なったよ。";
+  const box = $("recLv"); box.innerHTML = "";
+  LV_ALL.forEach(lv => {
+    const ws = WORD_BANK.filter(w => w.lvs.includes(lv));
+    const cnt = [0, 0, 0, 0, 0];
+    ws.forEach(w => cnt[level(w.en)]++);
+    const d = document.createElement("div");
+    d.className = "item";
+    d.innerHTML = "<span class='emo'>📘</span><span><span class='en'>" + lv + "</span><br><span class='jp'>"
+      + MARK.map((m, i) => m + cnt[i]).join("　") + "</span></span>"
+      + "<span class='n'>" + (cnt[3] + cnt[4]) + "/" + ws.length + "</span>";
+    box.appendChild(d);
+  });
+}
+$("resetBtn").addEventListener("click", () => {
+  if (!confirm("きろくを ぜんぶ けします。ほんとうに いい？")) return;
+  store = { facts: {}, miss: {}, voice: store.voice };
+  save(); drawRecord();
+});
+
+drawHome();
+</script>
+</body>
+</html>
