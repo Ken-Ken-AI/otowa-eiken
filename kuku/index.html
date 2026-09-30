@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="まるちゃん九九">
+  <link rel="apple-touch-icon" href="img/maruchan.png">
+  <link rel="manifest" href="manifest.json">
+  <title>まるちゃんの 九九れんしゅう</title>
+  <style>
+    :root {
+      --pink: #c2185b;
+      --pink-pale: #fce4ec;
+      --ink: #222;
+      --sub: #666;
+      --line: #e0c4cf;
+      --ok: #2e7d32;
+      --warn: #ef6c00;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Hiragino Maru Gothic ProN", "ヒラギノ丸ゴ ProN W4", "メイリオ", sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #fff1f6 0%, #fdf7ff 55%, #f3fbff 100%);
+      background-attachment: fixed;
+      touch-action: manipulation;
+      -webkit-user-select: none; user-select: none;
+    }
+    .app { max-width: 520px; margin: 0 auto; padding: 12px 14px 32px; min-height: 100vh; }
+    .screen { display: none; }
+    .screen.on { display: block; }
+
+    h1 { font-size: 22px; color: var(--pink); text-align: center; margin: 8px 0 4px; }
+    h2 { font-size: 18px; color: var(--pink); margin: 18px 0 8px; }
+    .lead { text-align: center; color: var(--sub); font-size: 13px; margin: 0 0 12px; }
+
+    .maru { display: block; width: 130px; height: 130px; margin: 4px auto 0; object-fit: contain; }
+    .maru.small { width: 72px; height: 72px; }
+    /* れんしゅう中の まるちゃん（ばめんで 絵が かわる） */
+    .quizmaru { display: block; width: auto; height: 94px; margin: 2px auto 0; object-fit: contain; }
+    .quizmaru.pop { animation: pop .45s; }
+    @keyframes pop {
+      0% { transform: scale(1); } 35% { transform: scale(1.18) rotate(-4deg); }
+      70% { transform: scale(.96) rotate(3deg); } 100% { transform: scale(1); }
+    }
+    .bubble {
+      background: #fff; border: 2px solid var(--line); border-radius: 20px;
+      padding: 12px 16px; margin: 8px auto 14px; text-align: center; font-size: 15px; line-height: 1.7;
+      box-shadow: 0 2px 0 #f2dde5;
+    }
+
+    button {
+      font-family: inherit; font-size: 17px; color: var(--ink);
+      border: 2px solid var(--line); background: #fff; border-radius: 18px;
+      padding: 12px 10px; cursor: pointer;
+    }
+    button:active { transform: translateY(1px); }
+    .big { display: block; width: 100%; font-size: 20px; padding: 18px 12px; margin: 10px 0; text-align: left; }
+    .big small { display: block; font-size: 12px; color: var(--sub); margin-top: 4px; }
+    .primary { background: var(--pink); border-color: var(--pink); color: #fff; font-weight: bold; }
+    .back { font-size: 14px; padding: 8px 12px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .topbar .title { font-size: 16px; color: var(--pink); font-weight: bold; }
+
+    /* えらぶボタン（えらんだら ✓ と太わく。色だけに たよらない） */
+    .chips { display: grid; gap: 8px; }
+    .chips.c5 { grid-template-columns: repeat(5, 1fr); }
+    .chips.c3 { grid-template-columns: repeat(3, 1fr); }
+    .chips.c2 { grid-template-columns: repeat(2, 1fr); }
+    .chip { padding: 10px 2px; font-size: 16px; line-height: 1.3; }
+    .chip small { font-size: 11px; color: var(--sub); }
+    .chip .num { font-size: 22px; font-weight: bold; }
+    .chip.sel { border: 3px solid var(--pink); background: var(--pink-pale); font-weight: bold; }
+    .chip.sel::before { content: "✓ "; color: var(--pink); }
+
+    /* おぼえる */
+    .rows { margin-top: 10px; }
+    .row {
+      display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px;
+      background: #fff; border: 2px solid var(--line); border-radius: 12px;
+      padding: 8px 10px; margin: 6px 0;
+    }
+    .row.now { border: 3px solid var(--pink); background: var(--pink-pale); }
+    .row .eq { font-size: 24px; font-weight: bold; letter-spacing: 1px; }
+    .row .yomi { font-size: 15px; color: var(--sub); margin-top: 2px; }
+    .row .say { font-size: 20px; padding: 8px 12px; }
+    .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .tools button { font-size: 15px; }
+
+    /* もんだい */
+    .progress { height: 12px; background: #fff; border: 2px solid var(--line); border-radius: 8px; overflow: hidden; margin: 10px 0 2px; }
+    .progress > div { height: 100%; width: 0; background: var(--pink); transition: width .2s; }
+    .count { display: flex; justify-content: space-between; font-size: 13px; color: var(--sub); }
+    .timer { font-variant-numeric: tabular-nums; font-weight: bold; color: var(--ink); }
+    .question {
+      text-align: center; font-size: 50px; font-weight: bold; margin: 8px 0 6px;
+      font-variant-numeric: tabular-nums;
+      background: #fff; border: 2px solid var(--line); border-radius: 22px;
+      padding: 10px 6px; box-shadow: 0 3px 0 #f2dde5;
+    }
+    .question .ans {
+      display: inline-block; min-width: 1.9em; border-bottom: 4px solid var(--pink);
+      color: var(--pink); text-align: center;
+    }
+    .judge { text-align: center; min-height: 52px; font-size: 18px; line-height: 1.6; }
+    .judge .mark { font-size: 30px; font-weight: bold; }
+    .judge.good .mark { color: var(--ok); }
+    .judge.bad .mark { color: var(--warn); }
+    .judge .cheer { display: inline-block; font-size: 20px; font-weight: bold; color: var(--pink);
+                    animation: pop .45s; }
+    .shake { animation: shake .3s; }
+    @keyframes shake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+    .pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+    .pad button { font-size: 28px; padding: 0; height: 64px; font-weight: bold; }
+    .pad .fn { font-size: 17px; }
+    .pad .wide { grid-column: span 2; }
+    .next { display: none; width: 100%; margin-top: 8px; font-size: 20px; padding: 16px; }
+    .next.on { display: block; }
+
+    /* けっか */
+    .result-num { text-align: center; font-size: 26px; font-weight: bold; margin: 6px 0; }
+    .result-sub { text-align: center; font-size: 15px; color: var(--sub); }
+    .newrec { text-align: center; font-size: 20px; font-weight: bold; color: var(--pink); margin: 6px 0; }
+    .misslist { background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 8px 12px; font-size: 17px; line-height: 2; }
+
+    /* きろく */
+    table.map { width: 100%; border-collapse: separate; border-spacing: 3px; table-layout: fixed; }
+    table.map th { font-size: 12px; color: var(--sub); font-weight: normal; padding: 2px 0; white-space: nowrap; }
+    table.map th.dan { font-size: 15px; font-weight: bold; color: var(--ink); }
+    table.map td {
+      text-align: center; font-size: 18px; font-weight: bold; height: 38px; border-radius: 8px;
+      border: 2px solid var(--line); background: #fff; cursor: pointer; padding: 0;
+    }
+    td.lv0 { color: #bbb; }
+    td.lv1 { border: 3px solid var(--ink); color: var(--ink); }
+    td.lv2 { background: #fff8e1; border-style: dashed; border-color: #b08900; color: #7a5f00; }
+    td.lv3 { background: var(--pink-pale); border-color: var(--pink); color: var(--pink); }
+    td.lv4 { background: var(--pink); border-color: var(--pink); color: #fff; }
+    .legend { font-size: 13px; color: var(--sub); line-height: 1.9; margin: 8px 0; }
+    .legend b { color: var(--ink); display: inline-block; width: 1.4em; text-align: center; }
+    .detail { background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 15px; line-height: 1.8; min-height: 3.6em; }
+    .best { background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 8px 12px; font-size: 15px; line-height: 1.9; }
+    .danger { font-size: 13px; color: var(--sub); margin-top: 24px; }
+
+    /* まちがえノート */
+    .note-item {
+      display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px;
+      background: #fff; border: 2px solid var(--line); border-radius: 14px;
+      padding: 8px 12px; margin: 6px 0;
+    }
+    .note-item .lv { font-size: 22px; font-weight: bold; width: 1.3em; text-align: center; }
+    .note-item .eq { font-size: 21px; font-weight: bold; }
+    .note-item .ym { font-size: 13px; color: var(--sub); }
+    .note-item .n { font-size: 13px; color: var(--sub); white-space: nowrap; }
+    .note-item.done { border-style: dashed; background: #fafafa; }
+    .note-item.done .eq { color: var(--sub); }
+    .note-empty { text-align: center; color: var(--sub); font-size: 15px; line-height: 1.9; padding: 10px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ホーム -->
+  <section class="screen on" id="home">
+    <h1>まるちゃんの 九九れんしゅう</h1>
+    <img class="maru" src="img/maruchan.png" alt="まるちゃん" onerror="this.style.display='none'">
+    <div class="bubble" id="homeMsg">いっしょに 九九を おぼえよう！</div>
+    <button class="big" data-go="learn">① おぼえる<small>だんごとに よみかたを みる・きく</small></button>
+    <button class="big" data-go="setup">② れんしゅう<small>もんだいを とく／タイムアタック</small></button>
+    <button class="big" data-go="record">③ きろく<small>できた九九と にがてな九九の ちず</small></button>
+    <button class="big" data-go="note" id="noteBtn">④ まちがえノート<small>まちがえた九九が あつまる</small></button>
+    <div style="text-align:center; margin-top:14px;">
+      <button class="back" id="voiceBtn"></button>
+    </div>
+  </section>
+
+  <!-- おぼえる -->
+  <section class="screen" id="learn">
+    <div class="topbar">
+      <button class="back" data-go="home">← もどる</button>
+      <span class="title">おぼえる</span>
+      <span style="width:72px"></span>
+    </div>
+    <h2>どの だん？</h2>
+    <div class="chips c5" id="learnDans"></div>
+    <div class="tools">
+      <button id="readAll">🔊 ぜんぶ よむ</button>
+      <button id="hideAns">こたえを かくす</button>
+    </div>
+    <div class="rows" id="learnRows"></div>
+  </section>
+
+  <!-- れんしゅうの じゅんび -->
+  <section class="screen" id="setup">
+    <div class="topbar">
+      <button class="back" data-go="home">← もどる</button>
+      <span class="title">れんしゅう</span>
+      <span style="width:72px"></span>
+    </div>
+    <h2>どの だん？（いくつでも）</h2>
+    <div class="chips c5" id="setupDans"></div>
+    <h2>じゅんばん</h2>
+    <div class="chips c3" id="setupOrder">
+      <button class="chip" data-v="up">のぼり<br><small>×1→×9</small></button>
+      <button class="chip" data-v="down">くだり<br><small>×9→×1</small></button>
+      <button class="chip" data-v="mix">ばらばら</button>
+    </div>
+    <h2>やりかた</h2>
+    <div class="chips c2" id="setupMode">
+      <button class="chip" data-v="slow">じっくり</button>
+      <button class="chip" data-v="time">タイムアタック</button>
+    </div>
+    <div class="chips" style="margin-top:8px">
+      <button class="chip" id="weakOnly">にがて（✕と△）だけ</button>
+    </div>
+    <div class="bubble" id="setupMsg" style="margin-top:14px"></div>
+    <button class="big primary" id="startBtn" style="text-align:center">スタート！</button>
+  </section>
+
+  <!-- もんだい -->
+  <section class="screen" id="quiz">
+    <div class="topbar">
+      <button class="back" id="quitBtn">← やめる</button>
+      <span class="title" id="quizTitle"></span>
+      <span class="timer" id="timer" style="width:72px; text-align:right"></span>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+    <div class="count"><span id="countText"></span><span id="missText"></span></div>
+    <img class="quizmaru" id="quizMaru" src="img/maru_think.jpg" alt="まるちゃん" onerror="this.style.display='none'">
+    <div class="question" id="question"></div>
+    <div class="judge" id="judge"></div>
+    <div class="pad" id="pad"></div>
+    <button class="next primary" id="nextBtn">つぎへ →</button>
+  </section>
+
+  <!-- けっか -->
+  <section class="screen" id="result">
+    <h1>おつかれさま！</h1>
+    <img class="maru" id="resultMaru" src="img/maruchan.png" alt="まるちゃん" onerror="this.style.display='none'">
+    <div class="bubble" id="resultMsg"></div>
+    <div class="result-num" id="resultNum"></div>
+    <div class="newrec" id="newRec"></div>
+    <div class="result-sub" id="resultSub"></div>
+    <div id="missWrap" style="display:none">
+      <h2>もういちど みておこう</h2>
+      <div class="misslist" id="missList"></div>
+    </div>
+    <button class="big primary" id="againBtn" style="text-align:center">もういちど</button>
+    <button class="big" data-go="home" style="text-align:center">ホームへ</button>
+  </section>
+
+  <!-- きろく -->
+  <section class="screen" id="record">
+    <div class="topbar">
+      <button class="back" data-go="home">← もどる</button>
+      <span class="title">きろく</span>
+      <span style="width:72px"></span>
+    </div>
+    <h2>九九の ちず</h2>
+    <table class="map" id="map"></table>
+    <div class="legend">
+      <b>◎</b>ばっちり（3かい つづけて はやく せいかい）　<b>○</b>できた（3かい つづけて せいかい）<br>
+      <b>△</b>もうすこし　<b>✕</b>にがて　<b>・</b>まだ　／　👑＝その だんは ぜんぶ ○いじょう
+    </div>
+    <div class="detail" id="detail">ますを おすと、その 九九が みられるよ。</div>
+    <h2>タイムアタックの さいこうきろく</h2>
+    <div class="best" id="bestList"></div>
+    <div class="danger">
+      <button class="back" id="resetBtn">きろくを ぜんぶ けす</button>
+    </div>
+  </section>
+
+  <!-- まちがえノート -->
+  <section class="screen" id="note">
+    <div class="topbar">
+      <button class="back" data-go="home">← もどる</button>
+      <span class="title">まちがえノート</span>
+      <span style="width:72px"></span>
+    </div>
+    <img class="quizmaru" src="img/maru_think.jpg" alt="まるちゃん" onerror="this.style.display='none'">
+    <div class="bubble" id="noteMsg"></div>
+    <button class="big primary" id="notePractice" style="text-align:center">ノートの九九だけ れんしゅう</button>
+    <h2 id="noteYetHead">まだ にがてな九九</h2>
+    <div id="noteYet"></div>
+    <h2 id="noteDoneHead">そつぎょう🎓（できるように なった九九）</h2>
+    <div id="noteDone"></div>
+  </section>
+
+</div>
+
+<script>
+// ===== 九九の となえかた =====
+// ★きょうかしょで よみかたが ちがう ところが あれば、ここを なおす（例：4×8「しは／しわ」、8×3「はちさん／はっさん」）
+const YOMI = {
+  1: ["いん いち が いち", "いん に が に", "いん さん が さん", "いん し が し", "いん ご が ご", "いん ろく が ろく", "いん しち が しち", "いん はち が はち", "いん く が く"],
+  2: ["に いち が に", "に にん が し", "に さん が ろく", "に し が はち", "に ご じゅう", "に ろく じゅうに", "に しち じゅうし", "に はち じゅうろく", "に く じゅうはち"],
+  3: ["さん いち が さん", "さん に が ろく", "さ ざん が く", "さん し じゅうに", "さん ご じゅうご", "さぶ ろく じゅうはち", "さん しち にじゅういち", "さん ぱ にじゅうし", "さん く にじゅうしち"],
+  4: ["し いち が し", "し に が はち", "し さん じゅうに", "し し じゅうろく", "し ご にじゅう", "し ろく にじゅうし", "し しち にじゅうはち", "し は さんじゅうに", "し く さんじゅうろく"],
+  5: ["ご いち が ご", "ご に じゅう", "ご さん じゅうご", "ご し にじゅう", "ご ご にじゅうご", "ご ろく さんじゅう", "ご しち さんじゅうご", "ご は しじゅう", "ごっ く しじゅうご"],
+  6: ["ろく いち が ろく", "ろく に じゅうに", "ろく さん じゅうはち", "ろく し にじゅうし", "ろく ご さんじゅう", "ろく ろく さんじゅうろく", "ろく しち しじゅうに", "ろく は しじゅうはち", "ろっ く ごじゅうし"],
+  7: ["しち いち が しち", "しち に じゅうし", "しち さん にじゅういち", "しち し にじゅうはち", "しち ご さんじゅうご", "しち ろく しじゅうに", "しち しち しじゅうく", "しち は ごじゅうろく", "しち く ろくじゅうさん"],
+  8: ["はち いち が はち", "はち に じゅうろく", "はち さん にじゅうし", "はち し さんじゅうに", "はち ご しじゅう", "はち ろく しじゅうはち", "はち しち ごじゅうろく", "はっ ぱ ろくじゅうし", "はっ く しちじゅうに"],
+  9: ["く いち が く", "く に じゅうはち", "く さん にじゅうしち", "く し さんじゅうろく", "く ご しじゅうご", "く ろく ごじゅうし", "く しち ろくじゅうさん", "く は しちじゅうに", "く く はちじゅういち"]
+};
+const yomi = (a, b) => YOMI[a][b - 1];
+
+// 「に いち が に」→ {lead:"に いち が", ans:"に"}／「に ご じゅう」→ {lead:"に ご", ans:"じゅう"}
+// こたえの 手前までを lead として よむ＝「にいちがー」と さそって、こどもが こたえる形にする
+function yomiSplit(a, b) {
+  const t = yomi(a, b).split(" ");
+  const i = t.indexOf("が");
+  const cut = i >= 0 ? i + 1 : 2;     // 「が」が あれば その あと、なければ さいしょの2語まで
+  return { lead: t.slice(0, cut).join(" "), ans: t.slice(cut).join(" ") };
+}
+// ★おうえんの こえ（2026-09-30 けんたろうさん要望）。元気な トーンで 作ってある。
+//   いつ 鳴らすか：①3れんぞく 正解 ②はんぶん すぎた ③あと2もん
+//   同じ ものが つづけて 出ないよう、まえに つかった ものは よける。
+// ★名前入り（name:true）は 公開版に 音声を 置かない（2026-09-30 けんたろうさん決定）。
+//   voice/ に cheer_name_*.mp3 が 無ければ えらばない＝ネットでは 名前が 鳴らない。
+//   text（読み上げ用の 代わり）にも 名前を 入れない。万一 音声が 無いまま えらばれても 名前は 出ない。
+const CHEER_MID = [
+  { clip: "cheer_good", text: "いいぞー", show: "いいぞー" },
+  { clip: "cheer_nice", text: "その ちょうし", show: "その ちょうし" },
+  { clip: "cheer_ii", text: "いい かんじ", show: "いい かんじ" },
+  { clip: "cheer_yaru", text: "やるねー", show: "やるねー" },
+  { clip: "cheer_sugoi", text: "すごいじゃん", show: "すごいじゃん" },
+  { clip: "cheer_jozu", text: "じょうずー", show: "じょうずー" },
+  { clip: "cheer_kanpeki", text: "かんぺきー", show: "かんぺきー" },
+  { clip: "cheer_bacchi", text: "ばっちりー", show: "ばっちりー" },
+  { clip: "cheer_nice2", text: "ナイスー", show: "ナイスー" },
+  { clip: "cheer_migoto", text: "おみごとー", show: "おみごとー" },
+  { clip: "cheer_yeah", text: "いえーい", show: "いえーい" },
+  { clip: "cheer_woo", text: "うぉー", show: "うぉー" },
+  { clip: "cheer_hyu", text: "ひゅーう", show: "ひゅーう" },
+  { clip: "cheer_notte", text: "のってきたー", show: "のってきたー" },
+  { clip: "cheer_tomara", text: "とまらないー", show: "とまらないー" },
+  { clip: "cheer_zekko", text: "ぜっこうちょー", show: "ぜっこうちょー" },
+  { clip: "cheer_saete", text: "さえてるー", show: "さえてるー" },
+  { clip: "cheer_ikioi", text: "いきおい あるねー", show: "いきおい あるねー" },
+  { clip: "cheer_oho", text: "おほほーう", show: "おほほーう" },
+  { clip: "cheer_nanto", text: "なんとー", show: "なんとー" },
+  { clip: "cheer_shibi", text: "しびれるー", show: "しびれるー" },
+  { clip: "cheer_hore", text: "ほれちゃうー", show: "ほれちゃうー" },
+  { clip: "cheer_tensai", text: "てんさい あらわるー", show: "てんさい あらわるー" },
+  { clip: "cheer_bikkuri", text: "まるちゃん びっくりー", show: "まるちゃん びっくりー" },
+  { clip: "cheer_hakase", text: "そのうち はかせに なっちゃう", show: "そのうち はかせに なっちゃう" },
+  { clip: "cheer_kamisama", text: "くくの かみさまー", show: "くくの かみさまー" },
+  { clip: "cheer_pikka", text: "あたまが ぴっかー", show: "あたまが ぴっかー" },
+  { clip: "cheer_deta", text: "でたー", show: "でたー" },
+  { clip: "cheer_kowai", text: "もう こわいもの なしだね", show: "もう こわいもの なしだね" },
+  { clip: "cheer_nani", text: "え いま なにが おきたの", show: "え いま なにが おきたの" },
+  { clip: "cheer_maru", text: "まるまる まるー", show: "まるまる まるー" },
+  { clip: "cheer_hoshi", text: "ほしが みっつー", show: "ほしが みっつー" },
+];
+const CHEER_END = [
+  { clip: "cheer_almost", text: "あと すこし", show: "あと すこし" },
+  { clip: "cheer_last", text: "ラスト いっちょう", show: "ラスト いっちょう" },
+  { clip: "cheer_mouchoi", text: "もう ちょっとー", show: "もう ちょっとー" },
+  { clip: "cheer_gogo", text: "ゴールが みえたー", show: "ゴールが みえたー" },
+];
+const CHEER_PERFECT = [
+  { clip: "cheer_perfect1", text: "ぜんもん せいかーい すごーい", show: "ぜんもん せいかーい！ すごーい！" },
+  { clip: "cheer_perfect2", text: "やったー かんぺきー", show: "やったー！ かんぺきー！" },
+  { clip: "cheer_perfect3", text: "しんきろく じゃない すごすぎー", show: "しんきろく じゃない？ すごすぎー！" },
+  { clip: "cheer_perfect4", text: "パーフェクトー はくしゅー", show: "パーフェクトー！ はくしゅー！" },
+  { clip: "cheer_perfect5", text: "もう せんせいに なれるよー", show: "もう せんせいに なれるよー！" },
+  { clip: "cheer_perfect6", text: "ぜんぶ まるー おみごとー", show: "ぜんぶ まるー！ おみごとー！" },
+];
+// ★がめんを ひらいた ときの こえ（2026-09-30 けんたろうさん要望）。
+//   ボタンごとに 2〜3こ。おすたびに ちがう ものが 鳴る（同じものは つづけない）。
+const SCREEN_SAY = {
+  home:   [{ clip: "ui_home1",  text: "まるちゃんの くく れんしゅう" },
+           { clip: "ui_home2",  text: "まるちゃんの くく れんしゅう がんばろー" }],
+  learn:  [{ clip: "ui_learn1", text: "おぼえよー" },
+           { clip: "ui_learn2", text: "いっしょに となえよう" },
+           { clip: "ui_learn3", text: "よーく きいてね" }],
+  setup:  [{ clip: "ui_setup1", text: "れんしゅう いくよー" },
+           { clip: "ui_setup2", text: "じゅんびは いい" },
+           { clip: "ui_setup3", text: "どの だんに する" }],
+  record: [{ clip: "ui_rec1",   text: "きろくを みてみよう" },
+           { clip: "ui_rec2",   text: "どこまで できたかな" },
+           { clip: "ui_rec3",   text: "くくの ちず だよ" }],
+  note:   [{ clip: "ui_note1",  text: "まちがえノート" },
+           { clip: "ui_note2",  text: "にがてを やっつけよう" },
+           { clip: "ui_note3",  text: "ここだけ やれば だいじょうぶ" }],
+};
+const START_SAY = [
+  { clip: "ui_start1", text: "スタート" },
+  { clip: "ui_start2", text: "よーい スタート" },
+];
+
+let nameOK = null;          // 名前入りの 音声が 手元に あるか
+let lastCheer = "";
+function pickCheer(list) {
+  let c = list.filter(x => !x.name || nameOK === true);   // 音声が 無ければ 名前入りは 出さない
+  const c2 = c.filter(x => x.clip !== lastCheer);         // 同じものが つづかない ように
+  if (c2.length) c = c2;
+  const pick = c[Math.floor(Math.random() * c.length)];
+  lastCheer = pick.clip;
+  return pick;
+}
+// 名前入りの 音声が あるか、ひらいた ときに 1回だけ しらべる
+(function probeNameClip() {
+  try {
+    const a = new Audio(CLIP_DIR + "cheer_name_fight.mp3");
+    a.preload = "metadata";
+    a.onloadedmetadata = () => { if (nameOK === null) nameOK = true; };
+    a.onerror = () => { if (nameOK === null) nameOK = false; };
+    a.load();
+  } catch (e) { nameOK = false; }
+})();
+
+// まちがえた ときの こえ（2026-09-30）。責めない・軽い ことばだけ。毎回 ランダムに えらぶ。
+const MISS_SAY = [
+  { clip: "miss1", text: "ちがうよ",   show: "ちがうよ" },
+  { clip: "miss2", text: "ざんねん",   show: "ざんねん" },
+  { clip: "miss3", text: "あぁっ",     show: "あぁっ" },
+  { clip: "miss4", text: "おしい",     show: "おしい！" },
+  { clip: "miss5", text: "もういちど", show: "もういちど" },
+];
+
+// ===== きろく（この たんまつの なかだけに のこる） =====
+const STORE_KEY = "kuku_v1";
+const FAST_MS = 4000;   // これより はやければ「はやい」
+const KEEP = 8;         // 1つの 九九で のこす かいすう
+let store = load();
+
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (s && s.facts && s.best) { s.miss = s.miss || {}; return s; }   // 古い きろくにも miss を つける
+  } catch (e) {}
+  return { facts: {}, best: {}, miss: {}, voice: true };
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) {}
+}
+function addResult(a, b, ok, ms) {
+  const k = a + "x" + b;
+  const h = store.facts[k] || (store.facts[k] = []);
+  h.push({ ok: ok, ms: Math.round(ms) });
+  if (h.length > KEEP) h.splice(0, h.length - KEEP);
+  // ★まちがえノート用の るいけい。facts は 8かいで 古いのが 消えるので、回数は べつに もつ
+  if (!ok) store.miss[k] = (store.miss[k] || 0) + 1;
+  save();
+}
+// ノートの 中身。いちどでも まちがえた 九九を、まちがえた回数の 多いじゅんに
+function noteItems() {
+  return Object.keys(store.miss).map(k => {
+    const [a, b] = k.split("x").map(Number);
+    return { a: a, b: b, n: store.miss[k], lv: level(a, b) };
+  }).sort((x, y) => y.n - x.n || x.a - y.a || x.b - y.b);
+}
+const notePending = () => noteItems().filter(it => it.lv < 3);   // まだ ○ に なっていないもの
+// 0=まだ 1=にがて 2=もうすこし 3=できた 4=ばっちり
+function level(a, b) {
+  const h = store.facts[a + "x" + b];
+  if (!h || !h.length) return 0;
+  const last3 = h.slice(-3);
+  if (last3.length === 3 && last3.every(r => r.ok)) {
+    return last3.every(r => r.ms <= FAST_MS) ? 4 : 3;
+  }
+  const last5 = h.slice(-5);
+  const miss = last5.filter(r => !r.ok).length;
+  if (!last5[last5.length - 1].ok || miss >= 2) return 1;
+  return 2;
+}
+const MARK = ["・", "✕", "△", "○", "◎"];
+const LEVEL_NAME = ["まだ", "にがて", "もうすこし", "できた", "ばっちり"];
+
+// ===== こえ =====
+function kata(s) {
+  // 「は」を「わ」と よまれないよう、カタカナに して わたす
+  return s.replace(/\s/g, "").replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
+}
+// ★かわいい声について（2026-09-28）
+//   端末に 入っている 声しか つかえない（外のサービスは つかわない方針）。
+//   できるのは ①日本語の 女の人の声を えらぶ ②ピッチ(高さ)を 上げる の2つ。
+//   これで「高めの やわらかい声」に なる。キャラクターの声そのものは 入れられない。
+let jpVoice = null;
+function pickVoice() {
+  if (!("speechSynthesis" in window)) return;
+  const vs = speechSynthesis.getVoices().filter(v => /ja[-_]JP/i.test(v.lang) || /japanese/i.test(v.name));
+  jpVoice = vs.find(v => /kyoko/i.test(v.name))                       // Mac/iPhone の 女性の声
+         || vs.find(v => !/otoya|hattori|daiki|ichiro/i.test(v.name)) // 男性の声は さける
+         || vs[0] || null;
+}
+if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+
+// ★iPhone/iPad は「ゆびで さわるまで 音を 出さない」きまりが ある。
+//   さいしょの タップの ときに 音の出ない ひとことを しゃべらせて カギを あけておく。
+let voiceUnlocked = false;
+function unlockVoice() {
+  if (voiceUnlocked || !("speechSynthesis" in window)) return;
+  voiceUnlocked = true;
+  try {
+    speechSynthesis.cancel();                        // つまって 居座っている ものが あれば 流す
+    const u = new SpeechSynthesisUtterance("あ");   // 空文字だと エラーに する ブラウザが ある
+    u.volume = 0; u.lang = "ja-JP";
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+["click", "touchstart"].forEach(ev =>
+  document.addEventListener(ev, unlockVoice, { once: true, capture: true }));
+
+// ★2026-09-29 実測でわかったこと（けんたろうさんの Mac・Chrome）：
+//   ページを ひらいて さいしょの ひとことが「おねがいした」まま 始まらず、居座る ことが ある。
+//   すると あとの こえは ぜんぶ その うしろで 待たされて、いつまでも 鳴らない。
+//   → 0.7秒 たっても 始まらなければ、1回だけ 流して やりなおす（見張り番）。
+function speak(text, onend, opt) {
+  if (!store.voice || !("speechSynthesis" in window)) { if (onend) setTimeout(onend, 400); return; }
+  let finished = false;
+  const done = () => { if (finished) return; finished = true; if (onend) onend(); };
+  const go = isRetry => {
+    const u = new SpeechSynthesisUtterance(kata(text));
+    u.lang = "ja-JP";
+    u.rate = (opt && opt.rate) || 0.95;
+    u.pitch = (opt && opt.pitch) || 1.5;   // 高さを 上げる＝やわらかく きこえる
+    if (jpVoice) u.voice = jpVoice;
+    let started = false;
+    u.onstart = () => { started = true; };
+    u.onend = done;
+    u.onerror = () => { if (started || isRetry) done(); };   // 見張り番が 流した分は かぞえない
+    speechSynthesis.speak(u);
+    if (!isRetry) setTimeout(() => {
+      if (started || finished) return;
+      speechSynthesis.cancel();
+      setTimeout(() => go(true), 150);
+    }, 700);
+  };
+  go(false);
+}
+// いま しゃべっているのを 止めてから しゃべる（タップ音が 出題の よみに かぶるため）
+// ★2026-09-29 なおした：前は いつも cancel() してから 0秒後に しゃべらせていた。これだと
+//   ①cancel の 直後の speak は にぎりつぶされる ことが ある
+//   ②setTimeout を はさむと「ゆびで さわった」つながりが 切れて iPhone が 音を 出さない
+//   → しゃべっていない ときは そのまま しゃべる。かぶる ときだけ 止めて すこし まつ。
+function sayNow(text, opt) { sayThen(text, null, opt); }
+function sayThen(text, onend, opt) {
+  if (!("speechSynthesis" in window)) { speak(text, onend, opt); return; }
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    speechSynthesis.cancel();
+    setTimeout(() => speak(text, onend, opt), 120);
+  } else {
+    speak(text, onend, opt);
+  }
+}
+function hush() {
+  stopClip();
+  if ("speechSynthesis" in window && (speechSynthesis.speaking || speechSynthesis.pending))
+    speechSynthesis.cancel();
+}
+
+// ===== つくって おいた こえ（VOICEVOX）=====
+// ★2026-09-29 けんたろうさん決定（案A）：VOICEVOX は Mac でしか 動かないので、
+//   その場で しゃべらせず、先に mp3 に して おいて 再生する。iPhone でも 鳴る。
+//   voice/ に ファイルが あれば そちら、無ければ 今までどおり ブラウザの こえ。
+//   作り方は _tools/make_voice.py（VOICEVOX を 起動して 流すだけ）。
+const CLIP_DIR = "voice/";
+let clipOK = null;          // null=まだ わからない / false=ファイルが 無い → ブラウザの こえ
+let curAudio = null;
+function stopClip() {
+  if (!curAudio) return;
+  try { curAudio.pause(); curAudio.currentTime = 0; } catch (e) {}
+  curAudio = null;
+}
+// name＝つくって おいた こえの ファイル名（無ければ null）／text＝その代わりに 読ませる ことば
+function voice(name, text, onend, opt) {
+  if (!store.voice) { if (onend) setTimeout(onend, 400); return; }
+  hush();
+  let done = false, used = false;   // used＝どちらの こえを つかうか 決まった
+  const fin = () => { if (done) return; done = true; if (onend) onend(); };
+  const fallback = () => { if (used) return; used = true; sayThen(text, fin, opt); };
+  if (clipOK === false || !name) { fallback(); return; }
+  let a;
+  try { a = new Audio(CLIP_DIR + name + ".mp3"); } catch (e) { fallback(); return; }
+  curAudio = a;
+  a.onplaying = () => { clipOK = true; used = true; };
+  a.onended = () => { if (curAudio === a) curAudio = null; fin(); };
+  a.onerror = () => {                       // ファイルが 無い＝この先 ずっと ブラウザの こえ
+    clipOK = false;
+    if (curAudio === a) curAudio = null;
+    fallback();
+  };
+  const p = a.play();
+  // 「ゆびで さわるまで 鳴らさない」で はじかれた ときは、その回だけ ブラウザの こえに する
+  if (p && p.catch) p.catch(() => { if (curAudio === a) curAudio = null; fallback(); });
+  // ★見張り番：鳴りも エラーも しないまま 止まる ことが ある（音を 鳴らせない 環境など）。
+  //   そのまま だと つぎの もんだいに 進めなく なるので、ブラウザの こえに きりかえる。
+  setTimeout(() => {
+    if (used || done) return;
+    if (curAudio === a) stopClip();
+    fallback();
+  }, 1400);
+}
+// 起動したら すぐ「こえの ファイルが あるか」を 1回だけ たしかめる。
+// こうしておくと、さいしょの もんだいで 1.4秒 待たされる ことが なくなる。
+(function probeClips() {
+  try {
+    const a = new Audio(CLIP_DIR + "d1.mp3");
+    a.preload = "metadata";
+    a.onloadedmetadata = () => { if (clipOK === null) clipOK = true; };
+    a.onerror = () => { if (clipOK === null) clipOK = false; };
+    a.load();
+  } catch (e) { clipOK = false; }
+})();
+function drawVoiceBtn() {
+  $("voiceBtn").textContent = store.voice ? "🔊 こえ：あり" : "🔇 こえ：なし";
+}
+
+// ===== がめんの きりかえ =====
+const $ = id => document.getElementById(id);
+function go(id) {
+  hush();
+  stopReadAll();
+  stopTimer();
+  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id));
+  window.scrollTo(0, 0);
+  if (id === "home") drawHome();
+  if (id === "learn") drawLearn();
+  if (id === "setup") drawSetup();
+  if (id === "record") drawRecord();
+  if (id === "note") drawNote();
+  // ★がめんを ひらいたら ひとこと（2026-09-30）
+  if (SCREEN_SAY[id]) { const s = pickCheer(SCREEN_SAY[id]); voice(s.clip, s.text); }
+}
+document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
+
+function drawHome() {
+  drawVoiceBtn();
+  let done = 0;
+  for (let a = 1; a <= 9; a++) for (let b = 1; b <= 9; b++) if (level(a, b) >= 3) done++;
+  $("homeMsg").textContent = done === 0
+    ? "いっしょに 九九を おぼえよう！"
+    : done === 81
+      ? "81こ ぜんぶ できた！ 九九マスターだね！"
+      : "81この うち " + done + "こ できるように なったよ！";
+  const n = notePending().length;
+  $("noteBtn").innerHTML = "④ まちがえノート<small>"
+    + (n ? "にがてが " + n + "こ あつまってる" : "まちがえた九九が あつまる") + "</small>";
+}
+$("voiceBtn").addEventListener("click", () => {
+  store.voice = !store.voice; save(); drawVoiceBtn();
+  if (store.voice) voice("say_on", "こえ を だす よ");
+});
+
+// ===== おぼえる =====
+let learnDan = 2, learnHide = false, reading = false;
+
+function danChips(box, isSel, onTap, withAll) {
+  box.innerHTML = "";
+  for (let a = 1; a <= 9; a++) {
+    const b = document.createElement("button");
+    b.className = "chip" + (isSel(a) ? " sel" : "");
+    b.innerHTML = "<span class='num'>" + a + "</span><br><small>のだん</small>";
+    b.addEventListener("click", () => onTap(a));
+    box.appendChild(b);
+  }
+  if (withAll) {
+    const b = document.createElement("button");
+    b.className = "chip" + (isSel("all") ? " sel" : "");
+    b.textContent = "ぜんぶ";
+    b.addEventListener("click", () => onTap("all"));
+    box.appendChild(b);
+  }
+}
+function drawLearn() {
+  danChips($("learnDans"), a => a === learnDan, a => { stopReadAll(); learnDan = a; drawLearn(); });
+  $("hideAns").className = learnHide ? "chip sel" : "";
+  const rows = $("learnRows");
+  rows.innerHTML = "";
+  for (let b = 1; b <= 9; b++) {
+    const a = learnDan;
+    const row = document.createElement("div");
+    row.className = "row";
+    row.id = "row" + b;
+    const left = document.createElement("div");
+    const eq = document.createElement("div");
+    eq.className = "eq";
+    const ym = document.createElement("div");
+    ym.className = "yomi";
+    const show = open => {
+      eq.textContent = a + " × " + b + " = " + (open ? a * b : "？");
+      ym.textContent = open ? yomi(a, b) : "おすと こたえが でるよ";
+    };
+    show(!learnHide);
+    left.appendChild(eq); left.appendChild(ym);
+    left.addEventListener("click", () => show(true));
+    const say = document.createElement("button");
+    say.className = "say";
+    say.textContent = "🔊";
+    say.addEventListener("click", () => { stopReadAll(); show(true); voice("full_" + a + b, yomi(a, b)); });
+    row.appendChild(left); row.appendChild(say);
+    rows.appendChild(row);
+  }
+}
+$("hideAns").addEventListener("click", () => { stopReadAll(); learnHide = !learnHide; drawLearn(); });
+$("readAll").addEventListener("click", () => {
+  if (reading) { stopReadAll(); return; }
+  if (!store.voice) { store.voice = true; save(); }
+  if (learnHide) { learnHide = false; drawLearn(); }
+  reading = true;
+  $("readAll").textContent = "■ とめる";
+  readFrom(1);
+});
+function readFrom(b) {
+  document.querySelectorAll("#learnRows .row").forEach(r => r.classList.remove("now"));
+  if (!reading || b > 9) { stopReadAll(); return; }
+  const row = $("row" + b);
+  row.classList.add("now");
+  row.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  voice("full_" + learnDan + b, yomi(learnDan, b),
+        () => setTimeout(() => { if (reading) readFrom(b + 1); }, 350));
+}
+function stopReadAll() {
+  if (!reading) return;
+  reading = false;
+  hush();
+  $("readAll").textContent = "🔊 ぜんぶ よむ";
+  document.querySelectorAll("#learnRows .row").forEach(r => r.classList.remove("now"));
+}
+
+// ===== れんしゅうの じゅんび =====
+const conf = { dans: [2], order: "up", mode: "slow", weak: false, note: false };
+
+function pool() {
+  // ★まちがえノートから の れんしゅう：だん・じゅんばんは 見ない
+  if (conf.note) { const l = notePending().map(it => ({ a: it.a, b: it.b })); shuffle(l); return l; }
+  const list = [];
+  conf.dans.forEach(a => {
+    for (let i = 1; i <= 9; i++) {
+      const b = conf.order === "down" ? 10 - i : i;
+      if (!conf.weak || [1, 2].includes(level(a, b))) list.push({ a: a, b: b });
+    }
+  });
+  if (conf.order === "mix") shuffle(list);
+  return list;
+}
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+function drawSetup() {
+  conf.note = false;          // ここで だんを えらび直す＝ノートの れんしゅうでは なくなる
+  const all = conf.dans.length === 9;
+  danChips($("setupDans"),
+    a => a === "all" ? all : (!all && conf.dans.includes(a)),
+    a => {
+      if (a === "all") conf.dans = all ? [2] : [1, 2, 3, 4, 5, 6, 7, 8, 9];
+      else if (all) conf.dans = [a];
+      else if (conf.dans.includes(a)) { if (conf.dans.length > 1) conf.dans = conf.dans.filter(x => x !== a); }
+      else conf.dans = conf.dans.concat(a).sort();
+      drawSetup();
+    }, true);
+  $("setupOrder").querySelectorAll(".chip").forEach(b => b.classList.toggle("sel", b.dataset.v === conf.order));
+  $("setupMode").querySelectorAll(".chip").forEach(b => b.classList.toggle("sel", b.dataset.v === conf.mode));
+  $("weakOnly").classList.toggle("sel", conf.weak);
+  const n = pool().length;
+  $("startBtn").disabled = n === 0;
+  $("startBtn").style.opacity = n === 0 ? .4 : 1;
+  $("setupMsg").textContent = n === 0
+    ? "えらんだ だんに、にがては ないよ！ すごい！"
+    : conf.mode === "time"
+      ? "ぜんぶで " + n + "もん。まちがえたら、あうまで こたえてね。じかんを はかるよ！"
+      : "ぜんぶで " + n + "もん。ゆっくりで だいじょうぶ。まちがえた もんだいは あとで もういちど でるよ。";
+}
+$("setupOrder").querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => { conf.order = b.dataset.v; drawSetup(); }));
+$("setupMode").querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => { conf.mode = b.dataset.v; drawSetup(); }));
+$("weakOnly").addEventListener("click", () => { conf.weak = !conf.weak; drawSetup(); });
+$("startBtn").addEventListener("click", startQuiz);
+// おなじ 条件で もういちど（ノートから 始めたなら ノートで もういちど）
+$("againBtn").addEventListener("click", () => { if (pool().length) startQuiz(); else go("setup"); });
+
+// ===== もんだい =====
+let q = null;        // いまの れんしゅう 1かいぶん
+let timerId = null;
+
+function startQuiz() {
+  const list = pool();
+  if (!list.length) return;
+  q = {
+    queue: list, total: list.length, done: 0,
+    input: "", locked: false, firstTry: true,
+    missCount: 0, missed: [],            // missed＝いちどでも まちがえた 九九
+    shownAt: 0, startAt: performance.now(), timed: conf.mode === "time",
+    justStarted: true      // ★1もんめの 前に「スタート！」と 言う
+  };
+  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === "quiz"));
+  window.scrollTo(0, 0);
+  $("quizTitle").textContent = conf.note
+    ? "まちがえノート"
+    : (conf.dans.length === 9 ? "ぜんぶ" : conf.dans.join("・") + "のだん") + (q.timed ? " ⏱" : "");
+  $("timer").textContent = "";
+  if (q.timed) timerId = setInterval(() => { $("timer").textContent = fmtTime(performance.now() - q.startAt); }, 100);
+  showQuestion();
+}
+function stopTimer() {
+  if (timerId) { clearInterval(timerId); timerId = null; }
+}
+function fmtTime(ms) {
+  const s = ms / 1000;
+  const m = Math.floor(s / 60);
+  const rest = (s - m * 60).toFixed(1);
+  return m ? m + "ふん " + rest + "びょう" : rest + "びょう";
+}
+function showQuestion() {
+  q.input = ""; q.locked = false; q.firstTry = true; q.wrongHere = 0;
+  q.shownAt = performance.now();
+  $("judge").className = "judge"; $("judge").innerHTML = "";
+  $("nextBtn").classList.remove("on");
+  $("pad").style.visibility = "visible";
+  drawQuestion();
+  $("bar").style.width = (q.done / q.total * 100) + "%";
+  $("countText").textContent = (q.done + 1) + " / " + q.total + " もんめ";
+  $("missText").textContent = q.missCount ? "まちがい " + q.missCount + "かい" : "";
+  setMaru("think");
+  // ★もんだいが 出たら「にいちがー」と さそう（2026-09-28 けんたろうさん要望）
+  //   タイムアタックは はやさを はかる ばめんなので よまない
+  const f = q.queue[0];
+  const lead = () => voice("lead_" + f.a + f.b, yomiSplit(f.a, f.b).lead, null, { rate: 0.85 });
+  if (q.justStarted) {
+    // ★「スタート！」→ そのあと 1もんめの 呼びかけ（2026-09-30 けんたろうさん要望）
+    q.justStarted = false;
+    const s = pickCheer(START_SAY);
+    voice(s.clip, s.text, q.timed ? null : lead);
+  } else if (!q.timed) lead();
+}
+// ばめんに あわせて まるちゃんの 絵を かえる
+function setMaru(kind) {
+  const img = $("quizMaru");
+  if (!img) return;
+  img.src = kind === "ok" ? "img/maru_ok.jpg" : "img/maru_think.jpg";
+  img.style.display = "";
+  if (kind === "ok") { img.classList.remove("pop"); void img.offsetWidth; img.classList.add("pop"); }
+  else img.classList.remove("pop");
+}
+function drawQuestion() {
+  const f = q.queue[0];
+  $("question").innerHTML = f.a + " × " + f.b + " = <span class='ans'>" + (q.input || "&nbsp;") + "</span>";
+}
+function press(key) {
+  if (!q || q.locked) return;
+  if (key === "del") q.input = q.input.slice(0, -1);
+  else if (key === "ok") { if (q.input) answer(); return; }
+  // ★数字を おした ときは しゃべらない（2026-09-30 けんたろうさん要望で とりやめ）。
+  //   出題の「さんいちが」と 正解の「さんいちがさん」だけを 聞かせて、となえる リズムを こわさない。
+  else if (q.input.length < 2) q.input += key;
+  drawQuestion();
+  // ★「こたえる」を おさなくても、こたえの けた数ぶん そろったら そのまま はんてい（2026-09-28）
+  //   九九の こたえは 1けた（6）と 2けた（56）が まざるので、けた数は もんだいごとに 見る
+  const f = q.queue[0];
+  if (key !== "del" && q.input.length === String(f.a * f.b).length) answer();
+}
+function answer() {
+  const f = q.queue[0];
+  const ms = performance.now() - q.shownAt;
+  const ok = Number(q.input) === f.a * f.b;
+  if (q.firstTry) addResult(f.a, f.b, ok, ms);
+
+  if (ok) {
+    q.locked = true;
+    q.queue.shift(); q.done++;
+    $("judge").className = "judge good";
+    $("judge").innerHTML = "<span class='mark'>◯ せいかい！</span> ✨";
+    $("bar").style.width = (q.done / q.total * 100) + "%";
+    setMaru("ok");
+    // ★おうえんの タイミング（2026-09-30）。うるさく ならないよう 1回の れんしゅうで 数回だけ。
+    //   ①3れんぞく 正解 ②ちょうど はんぶん ③のこり 2もん
+    q.streak = (q.streak || 0) + 1;
+    const left = q.queue.length - 1;          // この もんだいを 終えた あとの のこり
+    let cheer = null;
+    if (left === 2 && q.total >= 6) cheer = pickCheer(CHEER_END);
+    else if (q.done === Math.floor(q.total / 2) && q.total >= 6) cheer = pickCheer(CHEER_MID);
+    else if (q.streak >= 3 && q.streak % 3 === 0) cheer = pickCheer(CHEER_MID);
+    const gonext = () => { if (q) q.queue.length ? showQuestion() : finish(); };
+    if (cheer) $("judge").innerHTML += "<br><span class='cheer'>" + cheer.show + "</span>";
+    if (!q.timed && store.voice) {
+      // ★さいごまで となえてから つぎへ（「にいちがー」→こどもが「に」→まるちゃんが ぜんぶ となえる）
+      //   おうえんが ある ときは そのあとに つづけて 鳴らす
+      let moved = false;
+      const once = () => { if (moved) return; moved = true; gonext(); };
+      voice("full_" + f.a + f.b, yomi(f.a, f.b),
+            cheer ? () => voice(cheer.clip, cheer.text, once) : once, { rate: 0.9 });
+      setTimeout(once, cheer ? 4200 : 2600);   // こえが 出ない 端末でも 止まらないための ほけん
+    } else setTimeout(gonext, q.timed ? 250 : 650);
+    return;
+  }
+
+  // ★2026-09-30 改訂（けんたろうさん要望）：まちがえても そこで 終わりに しない。
+  //   「ざんねん」と 声を かけて、その場で もういちど 選べる ように する。
+  //   2回 つづけて まちがえたら、となえかたを 聞かせて 助ける（つまって しまわない ように）。
+  q.missCount++;
+  q.wrongHere = (q.wrongHere || 0) + 1;
+  if (!q.missed.some(m => m.a === f.a && m.b === f.b)) q.missed.push(f);
+  $("missText").textContent = "まちがい " + q.missCount + "かい";
+  setMaru("think");
+  q.firstTry = false;            // 2回目からは きろくに つけない（1回目の 結果が その九九の 実力）
+  q.streak = 0;                  // れんぞく正解は とぎれる
+  q.input = "";
+  drawQuestion();
+  $("question").classList.remove("shake"); void $("question").offsetWidth; $("question").classList.add("shake");
+
+  const m = MISS_SAY[Math.floor(Math.random() * MISS_SAY.length)];
+  $("judge").className = "judge bad";
+  $("judge").innerHTML = "<span class='mark'>✕ " + m.show + "</span>"
+    + (q.wrongHere >= 2 ? "<br><small>もういちど きいてみよう</small>" : "");
+  if (q.wrongHere >= 2 && !q.timed) {
+    // 2回目からは「ざんねん」→ となえかた、の じゅんに 聞かせる
+    voice(m.clip, m.text, () => setTimeout(() =>
+      voice("lead_" + f.a + f.b, yomiSplit(f.a, f.b).lead, null, { rate: 0.85 }), 250));
+  } else {
+    voice(m.clip, m.text);
+  }
+}
+$("nextBtn").addEventListener("click", () => { hush(); showQuestion(); });
+$("quitBtn").addEventListener("click", () => { q = null; go("setup"); });
+
+(function buildPad() {
+  // ★「こたえる」ボタンは廃止（2026-09-28）。けた数が そろえば 自動で はんていする
+  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "del", "0"];
+  keys.forEach(k => {
+    const b = document.createElement("button");
+    b.textContent = k === "del" ? "← けす" : k;
+    if (k === "del") b.className = "fn";
+    if (k === "0") b.className = "wide";
+    b.addEventListener("click", () => press(k));
+    $("pad").appendChild(b);
+  });
+})();
+document.addEventListener("keydown", e => {
+  if (!$("quiz").classList.contains("on")) return;
+  if (/^[0-9]$/.test(e.key)) press(e.key);
+  else if (e.key === "Backspace") press("del");
+  else if (e.key === "Enter") {
+    e.preventDefault();
+    if ($("nextBtn").classList.contains("on")) $("nextBtn").click(); else press("ok");
+  }
+});
+
+// ===== けっか =====
+function finish() {
+  stopTimer();
+  const total = performance.now() - q.startAt;
+  const perfect = q.missed.length === 0;
+  // ぜんもん せいかい なら 王冠の まるちゃん、そうでなければ えんぴつの まるちゃん
+  $("resultMaru").src = perfect ? "img/maru_king.jpg" : "img/maru_ok.jpg";
+  $("resultMaru").style.display = "";
+  // ★ぜんもん せいかい なら ハイテンションで ほめる（2026-09-30 けんたろうさん要望）
+  const pc = perfect ? pickCheer(CHEER_PERFECT) : null;
+  $("resultMsg").textContent = perfect
+    ? pc.show
+    : "がんばったね！ まちがえた ところは、まちがえノートに あつめておいたよ。";
+  if (perfect) setTimeout(() => voice(pc.clip, pc.text), 350);
+  $("newRec").textContent = "";
+  if (q.timed) {
+    $("resultNum").textContent = "⏱ " + fmtTime(total);
+    $("resultSub").textContent = q.total + "もん ／ まちがい " + q.missCount + "かい";
+    if (!conf.weak) {
+      const key = conf.dans.join("") + "-" + conf.order;
+      const old = store.best[key];
+      if (!old || total < old.ms) {
+        store.best[key] = { ms: Math.round(total), miss: q.missCount, date: new Date().toLocaleDateString("ja-JP") };
+        save();
+        $("newRec").textContent = old ? "★ しんきろく！（まえは " + fmtTime(old.ms) + "）" : "★ はじめての きろく！";
+      } else {
+        $("resultSub").textContent += " ／ さいこうきろく " + fmtTime(old.ms);
+      }
+    }
+  } else {
+    $("resultNum").textContent = q.total + "もんちゅう " + (q.total - q.missed.length) + "もん いっぱつ せいかい";
+    $("resultSub").textContent = "";
+  }
+  $("missWrap").style.display = perfect ? "none" : "block";
+  $("missList").innerHTML = q.missed
+    .map(f => f.a + " × " + f.b + " = " + f.a * f.b + "　<small>" + yomi(f.a, f.b) + "</small>").join("<br>");
+  q = null;
+  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === "result"));
+  window.scrollTo(0, 0);
+}
+
+// ===== きろく =====
+const ORDER_NAME = { up: "のぼり", down: "くだり", mix: "ばらばら" };
+
+function drawRecord() {
+  const t = $("map");
+  let html = "<tr><th>だん</th>";
+  for (let b = 1; b <= 9; b++) html += "<th>×" + b + "</th>";
+  html += "</tr>";
+  for (let a = 1; a <= 9; a++) {
+    let crown = true, cells = "";
+    for (let b = 1; b <= 9; b++) {
+      const lv = level(a, b);
+      if (lv < 3) crown = false;
+      cells += "<td class='lv" + lv + "' data-a='" + a + "' data-b='" + b + "'>" + MARK[lv] + "</td>";
+    }
+    html += "<tr><th class='dan'>" + (crown ? "👑" : "") + a + "</th>" + cells + "</tr>";
+  }
+  t.innerHTML = html;
+  t.querySelectorAll("td").forEach(td => td.addEventListener("click", () => {
+    const a = Number(td.dataset.a), b = Number(td.dataset.b);
+    const h = store.facts[a + "x" + b] || [];
+    $("detail").innerHTML = "<b>" + a + " × " + b + " = " + a * b + "</b>　" + yomi(a, b)
+      + "<br>" + MARK[level(a, b)] + " " + LEVEL_NAME[level(a, b)]
+      + (h.length ? "　さいきん：" + h.map(r => r.ok ? "◯" : "✕").join(" ") : "");
+    voice("full_" + a + b, yomi(a, b));
+  }));
+
+  const keys = Object.keys(store.best).sort();
+  $("bestList").innerHTML = keys.length
+    ? keys.map(k => {
+        const [d, o] = k.split("-");
+        const r = store.best[k];
+        const name = d.length === 9 ? "ぜんぶ" : d.split("").join("・") + "のだん";
+        return name + "（" + ORDER_NAME[o] + "）　<b>" + fmtTime(r.ms) + "</b>　<small>まちがい" + r.miss + "かい・" + r.date + "</small>";
+      }).join("<br>")
+    : "まだ きろくが ないよ。タイムアタックに ちょうせん してみよう！";
+}
+// ===== まちがえノート =====
+function noteRow(it, done) {
+  const d = document.createElement("div");
+  d.className = "note-item" + (done ? " done" : "");
+  d.innerHTML = "<span class='lv'>" + MARK[it.lv] + "</span>"
+    + "<span><span class='eq'>" + it.a + " × " + it.b + " = " + it.a * it.b + "</span>"
+    + "<br><span class='ym'>" + yomi(it.a, it.b) + "</span></span>"
+    + "<span class='n'>" + it.n + "かい</span>";
+  d.addEventListener("click", () => voice("full_" + it.a + it.b, yomi(it.a, it.b), null, { rate: 0.85 }));
+  return d;
+}
+function drawNote() {
+  const all = noteItems();
+  const yet = all.filter(it => it.lv < 3), done = all.filter(it => it.lv >= 3);
+  $("noteMsg").textContent = all.length === 0
+    ? "まだ まちがえた九九は ないよ。れんしゅうを すると ここに あつまるよ。"
+    : yet.length === 0
+      ? "ノートの九九は ぜんぶ できるように なったよ！ すごい！"
+      : "にがてが " + yet.length + "こ。ここだけ やれば だいじょうぶ。";
+  const fill = (box, items, isDone) => {
+    box.innerHTML = "";
+    items.forEach(it => box.appendChild(noteRow(it, isDone)));
+  };
+  fill($("noteYet"), yet, false);
+  fill($("noteDone"), done, true);
+  $("noteYetHead").style.display = yet.length ? "" : "none";
+  $("noteDoneHead").style.display = done.length ? "" : "none";
+  $("notePractice").style.display = yet.length ? "" : "none";
+  if (!all.length) $("noteYet").innerHTML = "<div class='note-empty'>まちがえた九九が ここに たまっていくよ。<br>にがてだけ あつめて れんしゅうできる。</div>";
+}
+$("notePractice").addEventListener("click", () => {
+  if (!notePending().length) return;
+  conf.note = true;
+  startQuiz();
+});
+
+$("resetBtn").addEventListener("click", () => {
+  if (!confirm("きろくを ぜんぶ けします。ほんとうに いい？")) return;
+  store = { facts: {}, best: {}, miss: {}, voice: store.voice };
+  save();
+  drawRecord();
+  $("detail").textContent = "ますを おすと、その 九九が みられるよ。";
+});
+
+drawHome();
+</script>
+</body>
+</html>
